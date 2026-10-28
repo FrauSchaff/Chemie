@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stoffbezogenes Ordnungssystem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Kalam:wght@700&display=swap" rel="stylesheet">
+<style>
+/* Layout: Periodensystem als zentrale Bühne, Infokarte im freien Feld über den Nebengruppen, darunter drei Bereiche (Entdecken · So geht's · Üben). */
+:root {
+  --paper: #eef2e6;
+  --surface: #ffffff;
+  --ink: #1d2b2a;
+  --muted: #5b6b67;
+  --rule: #c9d3c4;
+  --accent: #1f6fb2;      /* Hauptgruppen, Perioden */
+  --accent-2: #c0392b;    /* Nebengruppen */
+  --marker: #f6e55a;      /* Textmarker wie im Buch */
+  --metal: #b9cad8;
+  --metalloid: #cfdca2;
+  --nonmetal: #f3d35b;
+  --noble: #d4c3ea;
+  --unknown: #e3e6e1;
+  --solid: #8fa3b3;
+  --liquid: #5aa7e6;
+  --gas: #f4ecc9;
+  --good: #1e8a4c;
+  --bad: #c0392b;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --font-hand: "Kalam", "Comic Sans MS", cursive;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #141b1a; --surface: #1d2725; --ink: #e5ece8; --muted: #9db0aa; --rule: #34433f;
+    --accent: #6fb0ea; --accent-2: #ef7f70; --marker: #8a7b13;
+    --metal: #3e5466; --metalloid: #4d5a28; --nonmetal: #7a6416; --noble: #4f3f6b; --unknown: #2a3331;
+    --solid: #4d6170; --liquid: #2c6fa8; --gas: #4a4632; --good: #5fcf8e; --bad: #ef7f70;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #141b1a; --surface: #1d2725; --ink: #e5ece8; --muted: #9db0aa; --rule: #34433f;
+  --accent: #6fb0ea; --accent-2: #ef7f70; --marker: #8a7b13;
+  --metal: #3e5466; --metalloid: #4d5a28; --nonmetal: #7a6416; --noble: #4f3f6b; --unknown: #2a3331;
+  --solid: #4d6170; --liquid: #2c6fa8; --gas: #4a4632; --good: #5fcf8e; --bad: #ef7f70;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.5; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 20px 48px; }
+
+header.top { display: flex; align-items: stretch; gap: 0; margin: 20px 0 18px; border-bottom: 2px solid var(--rule); }
+.fm { background: var(--good); color: #fff; font-family: var(--font-display); font-weight: 800; padding: 8px 14px; display: flex; align-items: center; letter-spacing: .04em; }
+header.top h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(22px, 3vw, 32px); color: var(--accent); margin: 0; padding: 6px 16px; text-wrap: balance; line-height: 1.15; display: flex; align-items: center; }
+
+.intro { display: grid; grid-template-columns: minmax(0, 65ch) auto; gap: 24px; align-items: end; margin-bottom: 18px; }
+.intro p { margin: 0; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: flex-end; }
+.seg { display: inline-flex; border: 1.5px solid var(--rule); border-radius: 999px; overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: none; padding: 7px 14px; cursor: pointer; font-weight: 700; font-size: 15px; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.temp { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1.5px solid var(--rule); border-radius: 999px; padding: 4px 14px; font-size: 15px; }
+.temp input { width: 170px; accent-color: var(--accent); }
+.temp output { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 64px; text-align: right; }
+.temp[hidden] { display: none; }
+
+/* ---------- Periodensystem ---------- */
+.pse-scroll { overflow-x: auto; background: var(--surface); border: 1.5px solid var(--rule); border-radius: 14px; padding: 14px 14px 10px; }
+.pse { display: grid; grid-template-columns: 30px repeat(18, minmax(54px, 1fr)); grid-auto-rows: auto; gap: 3px; min-width: 1060px; position: relative; }
+.glabel { font-family: var(--font-display); font-weight: 800; font-size: 13px; text-align: center; padding: 2px 0; border-radius: 4px; transition: background .2s; }
+.glabel.hg { color: var(--accent); }
+.glabel.ng { color: var(--accent-2); }
+.glabel small { display: block; font-family: var(--font-body); font-weight: 700; font-size: 9.5px; letter-spacing: .04em; text-transform: uppercase; opacity: .85; }
+.plabel { font-family: var(--font-display); font-weight: 800; color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 16px; border-radius: 4px; transition: background .2s; }
+.glabel.on, .plabel.on { background: var(--marker); }
+
+.el { position: relative; border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent); border-radius: 6px; padding: 3px 4px 4px; min-height: 64px; cursor: pointer; text-align: left; background: var(--unknown); display: flex; flex-direction: column; justify-content: space-between; transition: transform .12s, box-shadow .12s, opacity .2s; }
+.el:hover { transform: translateY(-2px); box-shadow: 0 3px 8px rgb(0 0 0 / .18); z-index: 2; }
+.el .z { font-size: 10px; color: color-mix(in srgb, var(--ink) 70%, transparent); font-variant-numeric: tabular-nums; display: flex; justify-content: space-between; }
+.el .sym { font-family: var(--font-display); font-weight: 800; font-size: 19px; line-height: 1; }
+.el .nm { font-size: 9.5px; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.el .vals { font-size: 9px; line-height: 1.15; font-variant-numeric: tabular-nums; text-align: right; color: color-mix(in srgb, var(--ink) 80%, transparent); }
+.el.c-metal { background: var(--metal); } .el.c-metalloid { background: var(--metalloid); }
+.el.c-nonmetal { background: var(--nonmetal); } .el.c-noble { background: var(--noble); }
+.el.s-fest { background: var(--solid); } .el.s-fluessig { background: var(--liquid); } .el.s-gas { background: var(--gas); } .el.s-unbekannt { background: var(--unknown); }
+.el.selected { outline: 3px solid var(--ink); outline-offset: 1px; z-index: 3; }
+.el.hl { box-shadow: inset 0 0 0 3px var(--marker), 0 0 0 1px var(--marker); }
+.el.dim { opacity: .35; }
+.el.flash-good { outline: 3px solid var(--good); outline-offset: 1px; }
+.el.flash-bad { outline: 3px solid var(--bad); outline-offset: 1px; }
+.gapnote { grid-column: 2 / span 2; font-size: 10px; color: var(--muted); display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.2; }
+
+/* Infokarte im freien Feld */
+.card { grid-column: 4 / span 10; grid-row: 2 / span 3; background: var(--paper); border: 1.5px solid var(--rule); border-radius: 10px; padding: 10px 14px; display: grid; grid-template-columns: 88px 1fr; gap: 6px 14px; align-content: start; font-size: 14.5px; }
+.card .big { grid-row: span 3; border-radius: 8px; border: 1.5px solid color-mix(in srgb, var(--ink) 25%, transparent); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px; }
+.card .big b { font-family: var(--font-display); font-size: 36px; line-height: 1; }
+.card .big span { font-size: 12px; }
+.card h3 { margin: 0; font-family: var(--font-display); font-size: 20px; line-height: 1.15; }
+.card .sent { margin: 0; }
+.card dl { margin: 0; display: grid; grid-template-columns: repeat(3, auto); gap: 2px 14px; justify-content: start; font-variant-numeric: tabular-nums; }
+.card dt { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.card dd { margin: 0; font-weight: 700; }
+.pill { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 12.5px; font-weight: 700; border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 10px; font-size: 14px; align-items: center; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 16px; height: 16px; border-radius: 4px; display: inline-block; border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); }
+.sides { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; min-width: 1060px; }
+.side { font-weight: 700; padding: 5px 14px; border-radius: 6px; border: 1.5px solid color-mix(in srgb, var(--ink) 30%, transparent); }
+.side.l { background: var(--metal); } .side.r { background: var(--nonmetal); }
+
+/* ---------- Bereiche ---------- */
+nav.tabs { display: flex; gap: 6px; margin: 26px 0 0; border-bottom: 2px solid var(--rule); flex-wrap: wrap; }
+nav.tabs a { text-decoration: none; color: var(--muted); font-weight: 700; padding: 9px 16px; border-radius: 10px 10px 0 0; border: 2px solid transparent; border-bottom: 0; margin-bottom: -2px; }
+nav.tabs a[aria-current="page"] { color: var(--ink); background: var(--surface); border-color: var(--rule); }
+.panel { background: var(--surface); border: 2px solid var(--rule); border-top: 0; border-radius: 0 0 14px 14px; padding: 22px 24px 26px; }
+.panel[hidden] { display: none; }
+h2 { font-family: var(--font-display); font-weight: 800; font-size: 24px; margin: 0 0 6px; text-wrap: balance; }
+.lead { color: var(--muted); margin: 0 0 18px; max-width: 65ch; }
+
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.sogehts { font-family: var(--font-hand); font-size: 24px; background: var(--marker); display: inline-block; padding: 0 12px; transform: rotate(-2deg); margin: 4px 0 10px; color: var(--ink); }
+.task { font-weight: 700; margin: 0 0 6px; }
+ol.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+ol.steps li { display: grid; grid-template-columns: 30px 1fr; gap: 10px; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--rule); transition: background .2s, border-color .2s; }
+ol.steps li .n { width: 28px; height: 28px; border-radius: 50%; background: var(--paper); border: 1.5px solid var(--rule); font-weight: 700; display: flex; align-items: center; justify-content: center; }
+ol.steps li.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+ol.steps li.active .n { background: var(--accent); color: #fff; border-color: var(--accent); }
+ol.steps li .ans { font-style: italic; margin-top: 4px; color: var(--ink); }
+ol.steps li:not(.done) .ans { visibility: hidden; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.btn { border: 1.5px solid var(--ink); background: var(--ink); color: var(--paper); padding: 8px 16px; border-radius: 999px; cursor: pointer; font-weight: 700; }
+.btn.ghost { background: transparent; color: var(--ink); }
+.btn:disabled { opacity: .4; cursor: default; }
+select { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--rule); background: var(--surface); color: var(--ink); }
+
+/* Üben */
+.modes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.modes button { border: 1.5px solid var(--rule); background: var(--paper); padding: 8px 14px; border-radius: 10px; cursor: pointer; font-weight: 700; text-align: left; }
+.modes button small { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
+.modes button[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.quiz { display: grid; grid-template-columns: 1fr 220px; gap: 24px; align-items: start; }
+.q { font-size: 21px; font-family: var(--font-display); font-weight: 600; margin: 0 0 12px; text-wrap: balance; }
+.choices { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.choices .lbl { width: 100%; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
+.choice { min-width: 52px; padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--rule); background: var(--paper); cursor: pointer; font-weight: 700; font-family: var(--font-display); }
+.choice[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+.choice.right { background: var(--good); color: #fff; border-color: var(--good); }
+.choice.wrong { background: var(--bad); color: #fff; border-color: var(--bad); }
+.minicard { display: inline-grid; grid-template-columns: auto auto; gap: 0 18px; border: 2px solid var(--ink); border-radius: 8px; padding: 6px 12px 8px; background: var(--paper); margin-bottom: 12px; align-items: end; }
+.minicard .t { grid-column: 1 / -1; font-weight: 700; text-align: center; border-bottom: 1px solid var(--rule); margin-bottom: 4px; }
+.minicard .s { font-family: var(--font-display); font-weight: 800; font-size: 30px; }
+.minicard .v { text-align: right; font-variant-numeric: tabular-nums; line-height: 1.25; }
+.feedback { border-radius: 10px; padding: 10px 14px; margin-top: 8px; display: none; }
+.feedback.show { display: block; }
+.feedback.ok { background: color-mix(in srgb, var(--good) 14%, var(--surface)); border: 1.5px solid var(--good); }
+.feedback.no { background: color-mix(in srgb, var(--bad) 12%, var(--surface)); border: 1.5px solid var(--bad); }
+.score { border: 1.5px solid var(--rule); border-radius: 12px; padding: 14px; text-align: center; background: var(--paper); }
+.score .num { font-family: var(--font-display); font-weight: 800; font-size: 40px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.score .lab { font-size: 13px; color: var(--muted); }
+.score .streak { margin-top: 8px; font-weight: 700; }
+.opt { font-size: 14px; color: var(--muted); display: flex; gap: 6px; align-items: center; margin-top: 12px; }
+
+.merk { margin-top: 22px; border-left: 5px solid var(--accent); background: var(--paper); padding: 12px 16px; border-radius: 0 10px 10px 0; max-width: 75ch; }
+.merk b { color: var(--accent); }
+.hint-src { font-size: 13px; color: var(--muted); margin-top: 18px; }
+
+@media (max-width: 860px) {
+  .intro, .cols, .quiz { grid-template-columns: 1fr; }
+  .controls { justify-content: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><div class="fm">FM</div><h1>Mit dem stoffbezogenen Ordnungssystem arbeiten</h1></header>
+
+  <div class="intro">
+    <p>Jedes Element hat im Ordnungssystem einen festen Platz: eine <b style="color:var(--accent)">Gruppe</b> (senkrechte Spalte) und eine <b style="color:var(--accent)">Periode</b> (waagrechte Zeile). Außerdem stehen auf jedem Kärtchen Eigenschaften des Stoffes. <b>Klicke auf ein Element</b>, um seine Position und seine Eigenschaften zu sehen.</p>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Färbung">
+        <button id="m-class" aria-pressed="true">Metall / Nichtmetall</button>
+        <button id="m-state" aria-pressed="false">Aggregatzustand</button>
+      </div>
+      <label class="temp" id="tempbox" hidden for="temp">Temperatur
+        <input type="range" id="temp" min="-273" max="4000" step="1" value="25">
+        <output id="tempout">25 °C</output>
+      </label>
+    </div>
+  </div>
+
+  <div class="pse-scroll">
+    <div class="pse" id="pse" aria-label="Stoffbezogenes Ordnungssystem der Elemente"></div>
+    <div class="legend" id="legend"></div>
+    <div class="sides"><span class="side l">← Links stehen die Metalle.</span><span class="side r">Rechts stehen die Nichtmetalle. →</span></div>
+  </div>
+
+  <nav class="tabs" aria-label="Bereiche">
+    <a href="#entdecken" id="t-entdecken">Entdecken</a>
+    <a href="#so-gehts" id="t-so-gehts">So geht's</a>
+    <a href="#ueben" id="t-ueben">Üben</a>
+  </nav>
+
+  <!-- Entdecken -->
+  <section class="panel" id="p-entdecken">
+    <h2>Wie ist das Ordnungssystem aufgebaut?</h2>
+    <div class="cols">
+      <div>
+        <p style="margin-top:0">Die <b style="color:var(--accent)">senkrechten Spalten</b> heißen <b>Gruppen</b>. Es gibt acht <b style="color:var(--accent)">Hauptgruppen</b> (I bis VIII) und zehn <b style="color:var(--accent-2)">Nebengruppen</b>. Die Hauptgruppen haben Familiennamen, zum Beispiel heißen die Elemente der VII. Hauptgruppe <i>Halogene</i>.</p>
+        <p>Die <b style="color:var(--accent)">waagrechten Zeilen</b> heißen <b>Perioden</b>. Es gibt sieben davon.</p>
+        <p>Auf jedem Kärtchen stehen drei Zahlen: oben die <b>Siedetemperatur</b>, in der Mitte die <b>Schmelztemperatur</b> (beide in °C) und unten die <b>Dichte</b> (in g/cm³, bei Gasen in g/L).</p>
+      </div>
+      <div>
+        <table style="border-collapse:collapse;width:100%;font-size:15px" aria-label="Hauptgruppen und Elementfamilien">
+          <thead><tr><th style="text-align:left;padding:6px 8px;border-bottom:2px solid var(--rule)">Hauptgruppe</th><th style="text-align:left;padding:6px 8px;border-bottom:2px solid var(--rule)">Elementfamilie</th></tr></thead>
+          <tbody id="famtable"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="merk"><b>Merksatz:</b> Die meisten Elemente lassen sich in Metalle und Nichtmetalle einteilen. Die Metalle stehen im Periodensystem links, die Nichtmetalle rechts. Dazwischen liegen die Halbmetalle.</div>
+    <p class="hint-src">Tipp: Stelle oben auf „Aggregatzustand“ um und schiebe die Temperatur. So siehst du, welche Elemente bei welcher Temperatur fest, flüssig oder gasförmig sind.</p>
+  </section>
+
+  <!-- So geht's -->
+  <section class="panel" id="p-so-gehts" hidden>
+    <h2>Schritt für Schritt</h2>
+    <p class="lead">Wähle ein Element und gehe die Schritte durch. Das Ordnungssystem oben zeigt dir bei jedem Schritt, wohin du schauen musst.</p>
+    <div class="row" style="margin:0 0 18px"><label for="walk-el"><b>Element:</b></label><select id="walk-el"></select></div>
+    <div class="cols">
+      <div>
+        <p class="task">A · Beschreibe die Position des Elements.</p>
+        <div class="sogehts">So geht's</div>
+        <ol class="steps" id="steps-pos"></ol>
+        <div class="row"><button class="btn" id="pos-next">Nächster Schritt</button><button class="btn ghost" id="pos-reset">Von vorn</button></div>
+      </div>
+      <div>
+        <p class="task">B · Nenne den Aggregatzustand bei Raumtemperatur.</p>
+        <div class="sogehts">So geht's</div>
+        <ol class="steps" id="steps-agg"></ol>
+        <div class="row"><button class="btn" id="agg-next">Nächster Schritt</button><button class="btn ghost" id="agg-reset">Von vorn</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Üben -->
+  <section class="panel" id="p-ueben" hidden>
+    <h2>Üben</h2>
+    <div class="modes" role="group" aria-label="Übungsart">
+      <button data-mode="pos" aria-pressed="true">Position angeben<small>Hauptgruppe und Periode wählen</small></button>
+      <button data-mode="find" aria-pressed="false">Element finden<small>Im Ordnungssystem anklicken</small></button>
+      <button data-mode="agg" aria-pressed="false">Aggregatzustand<small>fest, flüssig oder gasförmig?</small></button>
+      <button data-mode="class" aria-pressed="false">Metall oder Nichtmetall?<small>Stoffklasse zuordnen</small></button>
+    </div>
+    <div class="quiz">
+      <div id="quiz"></div>
+      <aside class="score" aria-live="polite">
+        <div class="num" id="sc">0 / 0</div>
+        <div class="lab">richtig beantwortet</div>
+        <div class="streak" id="streak"></div>
+        <button class="btn ghost" id="sc-reset" style="margin-top:10px;font-size:14px">Zähler zurücksetzen</button>
+      </aside>
+    </div>
+    <label class="opt"><input type="checkbox" id="opt-ng"> Auch Elemente aus den Nebengruppen abfragen (nur bei „Aggregatzustand“ und „Metall oder Nichtmetall?“)</label>
+  </section>
+</div>
+
+<script>
+(() => {
+"use strict";
+// Daten: Symbol, Name, Schmelztemperatur °C, Siedetemperatur °C, Dichte (g/cm³; Gase g/L), Stoffklasse
+// Werte gerundet nach gängigen Tabellen; null = nicht bekannt / nicht messbar. Kursiv markierte Besonderheiten in NOTE.
+const RAW = [
+["H","Wasserstoff",-259,-253,0.09,"n"],["He","Helium",null,-269,0.18,"e"],
+["Li","Lithium",181,1342,0.53,"m"],["Be","Beryllium",1287,2469,1.85,"m"],["B","Bor",2076,3927,2.34,"h"],["C","Kohlenstoff",3550,4827,2.26,"n"],["N","Stickstoff",-210,-196,1.25,"n"],["O","Sauerstoff",-218,-183,1.43,"n"],["F","Fluor",-220,-188,1.70,"n"],["Ne","Neon",-249,-246,0.90,"e"],
+["Na","Natrium",98,883,0.97,"m"],["Mg","Magnesium",649,1107,1.74,"m"],["Al","Aluminium",660,2519,2.70,"m"],["Si","Silicium",1414,3265,2.33,"h"],["P","Phosphor",44,280,1.82,"n"],["S","Schwefel",115,445,2.07,"n"],["Cl","Chlor",-101,-34,3.21,"n"],["Ar","Argon",-189,-186,1.78,"e"],
+["K","Kalium",63,760,0.86,"m"],["Ca","Calcium",842,1484,1.55,"m"],["Sc","Scandium",1541,2836,2.99,"m"],["Ti","Titan",1668,3287,4.51,"m"],["V","Vanadium",1910,3407,6.11,"m"],["Cr","Chrom",1907,2671,7.14,"m"],["Mn","Mangan",1246,2061,7.30,"m"],["Fe","Eisen",1538,2862,7.87,"m"],["Co","Cobalt",1495,2927,8.90,"m"],["Ni","Nickel",1455,2913,8.91,"m"],["Cu","Kupfer",1085,2595,8.92,"m"],["Zn","Zink",420,907,7.13,"m"],["Ga","Gallium",30,2229,5.91,"m"],["Ge","Germanium",938,2833,5.32,"h"],["As","Arsen",817,616,5.73,"h"],["Se","Selen",221,685,4.81,"n"],["Br","Brom",-7,59,3.12,"n"],["Kr","Krypton",-157,-153,3.75,"e"],
+["Rb","Rubidium",39,688,1.53,"m"],["Sr","Strontium",777,1382,2.64,"m"],["Y","Yttrium",1526,3336,4.47,"m"],["Zr","Zirconium",1855,4409,6.51,"m"],["Nb","Niob",2477,4744,8.57,"m"],["Mo","Molybdän",2623,4639,10.28,"m"],["Tc","Technetium",2157,4265,11.5,"m"],["Ru","Ruthenium",2334,4150,12.37,"m"],["Rh","Rhodium",1964,3695,12.41,"m"],["Pd","Palladium",1555,2963,12.02,"m"],["Ag","Silber",962,2212,10.50,"m"],["Cd","Cadmium",321,767,8.65,"m"],["In","Indium",157,2072,7.31,"m"],["Sn","Zinn",232,2602,7.29,"m"],["Sb","Antimon",631,1587,6.68,"h"],["Te","Tellur",450,988,6.24,"h"],["I","Iod",114,184,4.93,"n"],["Xe","Xenon",-112,-108,5.90,"e"],
+["Cs","Caesium",28,671,1.87,"m"],["Ba","Barium",727,1897,3.51,"m"],
+["La","Lanthan",920,3464,6.15,"m"],["Ce","Cer",795,3443,6.77,"m"],["Pr","Praseodym",935,3520,6.77,"m"],["Nd","Neodym",1024,3074,7.01,"m"],["Pm","Promethium",1042,3000,7.26,"m"],["Sm","Samarium",1072,1794,7.52,"m"],["Eu","Europium",822,1529,5.24,"m"],["Gd","Gadolinium",1313,3273,7.90,"m"],["Tb","Terbium",1356,3230,8.23,"m"],["Dy","Dysprosium",1412,2567,8.55,"m"],["Ho","Holmium",1474,2700,8.80,"m"],["Er","Erbium",1529,2868,9.07,"m"],["Tm","Thulium",1545,1950,9.32,"m"],["Yb","Ytterbium",824,1196,6.90,"m"],
+["Lu","Lutetium",1663,3402,9.84,"m"],["Hf","Hafnium",2233,4603,13.31,"m"],["Ta","Tantal",3017,5458,16.65,"m"],["W","Wolfram",3422,5930,19.30,"m"],["Re","Rhenium",3186,5596,21.02,"m"],["Os","Osmium",3033,5012,22.59,"m"],["Ir","Iridium",2446,4428,22.56,"m"],["Pt","Platin",1768,3825,21.45,"m"],["Au","Gold",1064,2856,19.32,"m"],["Hg","Quecksilber",-39,357,13.55,"m"],["Tl","Thallium",304,1473,11.85,"m"],["Pb","Blei",327,1749,11.34,"m"],["Bi","Bismut",271,1564,9.78,"m"],["Po","Polonium",254,962,9.20,"m"],["At","Astat",302,337,null,"h"],["Rn","Radon",-71,-62,9.73,"e"],
+["Fr","Francium",27,677,null,"m"],["Ra","Radium",700,1737,5.5,"m"],
+["Ac","Actinium",1050,3198,10.07,"m"],["Th","Thorium",1750,4788,11.72,"m"],["Pa","Protactinium",1572,null,15.37,"m"],["U","Uran",1135,4131,19.05,"m"],["Np","Neptunium",644,3902,20.45,"m"],["Pu","Plutonium",640,3228,19.82,"m"],["Am","Americium",1176,2011,13.67,"m"],["Cm","Curium",1345,3110,13.51,"m"],["Bk","Berkelium",986,null,14.78,"m"],["Cf","Californium",900,null,15.1,"m"],["Es","Einsteinium",860,null,8.84,"m"],["Fm","Fermium",null,null,null,"m"],["Md","Mendelevium",null,null,null,"m"],["No","Nobelium",null,null,null,"m"],
+["Lr","Lawrencium",null,null,null,"m"],["Rf","Rutherfordium",null,null,null,"u"],["Db","Dubnium",null,null,null,"u"],["Sg","Seaborgium",null,null,null,"u"],["Bh","Bohrium",null,null,null,"u"],["Hs","Hassium",null,null,null,"u"],["Mt","Meitnerium",null,null,null,"u"],["Ds","Darmstadtium",null,null,null,"u"],["Rg","Roentgenium",null,null,null,"u"],["Cn","Copernicium",null,null,null,"u"],["Nh","Nihonium",null,null,null,"u"],["Fl","Flerovium",null,null,null,"u"],["Mc","Moscovium",null,null,null,"u"],["Lv","Livermorium",null,null,null,"u"],["Ts","Tenness",null,null,null,"u"],["Og","Oganesson",null,null,null,"u"]
+];
+const NOTE = {
+  He: "Helium wird bei normalem Druck auch am absoluten Nullpunkt nicht fest.",
+  C: "Kohlenstoff (Graphit) geht bei normalem Druck direkt vom festen in den gasförmigen Zustand über (Sublimation).",
+  As: "Arsen sublimiert bei 616 °C, geht also direkt vom festen in den gasförmigen Zustand über. Schmelzen kann es nur unter erhöhtem Druck.",
+  P: "Die Werte gelten für weißen Phosphor.",
+  At: "Von Astat gibt es nur winzige Mengen, die Werte sind geschätzt.",
+  Fr: "Von Francium gibt es nur winzige Mengen, die Werte sind geschätzt."
+};
+const SUBLIM = new Set(["As"]);
+const ROMAN = ["","I","II","III","IV","V","VI","VII","VIII"];
+const ORD = ["","ersten","zweiten","dritten","vierten","fünften","sechsten","siebten","achten"];
+const FAM = ["","Alkalimetalle","Erdalkalimetalle","Borgruppe","Kohlenstoffgruppe","Stickstoffgruppe","Chalkogene","Halogene","Edelgase"];
+const NG_OF_COL = {3:3,4:4,5:5,6:6,7:7,8:8,9:8,10:8,11:1,12:2};
+const CLASS = { m:["Metall","c-metal","--metal"], h:["Halbmetall","c-metalloid","--metalloid"], n:["Nichtmetall","c-nonmetal","--nonmetal"], e:["Edelgas (Nichtmetall)","c-noble","--noble"], u:["unbekannt","",""] };
+const RADIO = z => z === 43 || z === 61 || z >= 84;
+
+function place(z) {
+  if (z === 1) return [1,1];
+  if (z === 2) return [18,1];
+  if (z <= 4) return [z-2,2];
+  if (z <= 10) return [z+8,2];
+  if (z <= 12) return [z-10,3];
+  if (z <= 18) return [z,3];
+  if (z <= 36) return [z-18,4];
+  if (z <= 54) return [z-36,5];
+  if (z <= 56) return [z-54,6];
+  if (z <= 70) return [3+(z-57),9];   // Lanthan bis Ytterbium (Zusatzzeile)
+  if (z <= 86) return [z-68,6];
+  if (z <= 88) return [z-86,7];
+  if (z <= 102) return [3+(z-89),10]; // Actinium bis Nobelium (Zusatzzeile)
+  return [z-100,7];
+}
+
+const EL = RAW.map((r, i) => {
+  const z = i + 1, [col, row] = place(z);
+  const period = row === 9 ? 6 : row === 10 ? 7 : row;
+  let kind, group;
+  if (row >= 9) { kind = "f"; group = 3; }
+  else if (col <= 2) { kind = "hg"; group = col; }
+  else if (col >= 13) { kind = "hg"; group = col - 10; }
+  else { kind = "ng"; group = NG_OF_COL[col]; }
+  return { z, sym: r[0], name: r[1], mp: r[2], bp: r[3], d: r[4], cls: r[5], col, row, period, kind, group };
+});
+const BY = Object.fromEntries(EL.map(e => [e.sym, e]));
+
+function state(e, T) {
+  if (e.mp === null && e.bp === null) return "unbekannt";
+  if (SUBLIM.has(e.sym)) return T < e.bp ? "fest" : "gasförmig";
+  if (e.mp === null) return T < e.bp ? "flüssig" : "gasförmig";
+  if (T < e.mp) return "fest";
+  if (e.bp === null || T < e.bp) return "flüssig";
+  return "gasförmig";
+}
+const fmtNum = n => n === null ? "–" : (n < 0 ? "−" + Math.abs(n) : String(n));
+const fmtD = e => e.d === null ? "–" : e.d.toFixed(2).replace(".", ",");
+const unitD = e => state(e, 25) === "gasförmig" ? "g/L" : "g/cm³";
+const stateClass = s => ({ "fest":"s-fest", "flüssig":"s-fluessig", "gasförmig":"s-gas" }[s] || "s-unbekannt");
+
+function positionSentence(e) {
+  if (e.kind === "f") return `${e.name} gehört zu den ${e.period === 6 ? "Lanthanoiden" : "Actinoiden"} und steht in der ${ORD[e.period]} Periode (Zusatzzeile unten).`;
+  const g = e.kind === "hg" ? "Hauptgruppe" : "Nebengruppe";
+  return `${e.name} steht in der ${ORD[e.group]} ${g} und der ${ORD[e.period]} Periode.`;
+}
+function familySentence(e) {
+  if (e.kind !== "hg") return null;
+  if (e.sym === "H") return "Wasserstoff steht in der I. Hauptgruppe, ist aber ein Nichtmetall und gehört nicht zu den Alkalimetallen.";
+  return `${e.name} gehört damit zur Elementfamilie „${FAM[e.group]}“.`;
+}
+function tempSentence(e) {
+  if (e.mp === null && e.bp === null) return `Für ${e.name} sind Schmelz- und Siedetemperatur nicht bekannt.`;
+  return `${e.name} hat eine Schmelztemperatur von ${e.mp === null ? "–" : fmtNum(e.mp) + " °C"} und eine Siedetemperatur von ${e.bp === null ? "–" : fmtNum(e.bp) + " °C"}.`;
+}
+function stateSentence(e) {
+  const s = state(e, 25);
+  if (s === "unbekannt") return `Ohne Schmelz- und Siedetemperatur lässt sich der Aggregatzustand von ${e.name} nicht bestimmen.`;
+  if (SUBLIM.has(e.sym)) return `Da ${e.name} erst bei ${fmtNum(e.bp)} °C direkt in den gasförmigen Zustand übergeht, ist es bei Raumtemperatur fest.`;
+  if (e.mp === null) return `Da ${e.name} schon bei ${fmtNum(e.bp)} °C in den gasförmigen Zustand übergeht, ist es bei Raumtemperatur gasförmig.`;
+  const bpTxt = e.bp === null ? "" : ` und bei ${fmtNum(e.bp)} °C in den gasförmigen Zustand`;
+  return `Da ${e.name} bei ${fmtNum(e.mp)} °C in den flüssigen Zustand${bpTxt} übergeht, ist es bei Raumtemperatur ${s}.`;
+}
+
+/* ---------- Gitter aufbauen ---------- */
+const pse = document.getElementById("pse");
+const cells = {};
+const glabels = {}, plabels = {};
+function add(node, col, row) { node.style.gridColumn = col; node.style.gridRow = row; pse.appendChild(node); return node; }
+
+// Kopfzeile: Gruppen (Zeile 1 im Gitter = Beschriftung)
+add(Object.assign(document.createElement("div"), { className: "glabel", innerHTML: "<small>Per.</small>" }), 1, 1);
+for (let c = 1; c <= 18; c++) {
+  const d = document.createElement("div");
+  if (c <= 2 || c >= 13) { const g = c <= 2 ? c : c - 10; d.className = "glabel hg"; d.innerHTML = `<small>${c === 1 ? "Hauptgr." : "&nbsp;"}</small>${ROMAN[g]}`; glabels["hg" + g] = d; }
+  else { const g = NG_OF_COL[c]; d.className = "glabel ng"; d.innerHTML = `<small>${c === 3 ? "Nebengr." : "&nbsp;"}</small>${ROMAN[g]}`; (glabels["ng" + g] ||= []).push(d); d.dataset.col = c; }
+  add(d, c + 1, 1);
+}
+for (let p = 1; p <= 7; p++) { plabels[p] = add(Object.assign(document.createElement("div"), { className: "plabel", textContent: p }), 1, p + 1); }
+// Abstandszeile vor den Zusatzzeilen
+add(Object.assign(document.createElement("div"), { style: "height:10px" }), 2, 9);
+add(Object.assign(document.createElement("div"), { className: "gapnote", innerHTML: "Lanthanoide<br>(6. Periode)" }), "2 / span 2", 10);
+add(Object.assign(document.createElement("div"), { className: "gapnote", innerHTML: "Actinoide<br>(7. Periode)" }), "2 / span 2", 11);
+
+EL.forEach(e => {
+  const b = document.createElement("button");
+  b.className = "el";
+  b.type = "button";
+  b.setAttribute("aria-label", `${e.name}, ${e.sym}`);
+  b.innerHTML = `<span class="z"><span>${e.z}</span><span>${RADIO(e.z) ? "☢" : ""}</span></span><span class="sym">${e.sym}</span><span class="nm">${e.name}</span>`;
+  b.addEventListener("click", () => onCell(e));
+  const gridRow = e.row >= 9 ? e.row + 1 : e.row + 1;
+  add(b, e.col + 1, gridRow);
+  cells[e.sym] = b;
+});
+
+// Infokarte im freien Feld
+const card = document.createElement("div");
+card.className = "card"; card.setAttribute("aria-live", "polite");
+card.style.gridColumn = "4 / span 10"; card.style.gridRow = "2 / span 3";
+pse.appendChild(card);
+
+/* ---------- Färbung ---------- */
+let mode = "class", T = 25;
+function paint() {
+  EL.forEach(e => {
+    const b = cells[e.sym];
+    b.classList.remove("c-metal","c-metalloid","c-nonmetal","c-noble","s-fest","s-fluessig","s-gas","s-unbekannt");
+    if (mode === "class") { const c = CLASS[e.cls][1]; if (c) b.classList.add(c); }
+    else b.classList.add(stateClass(state(e, T)));
+  });
+  const lg = document.getElementById("legend");
+  if (mode === "class") lg.innerHTML = ["m","h","n","e"].map(k => `<span><i style="background:var(${CLASS[k][2]})"></i>${CLASS[k][0]}</span>`).join("") + `<span>☢ radioaktiv</span>`;
+  else lg.innerHTML = `<span><i style="background:var(--solid)"></i>fest</span><span><i style="background:var(--liquid)"></i>flüssig</span><span><i style="background:var(--gas)"></i>gasförmig</span><span><i style="background:var(--unknown)"></i>unbekannt</span><span>bei ${fmtNum(T)} °C</span>`;
+  if (current) renderCard(current);
+}
+const bClass = document.getElementById("m-class"), bState = document.getElementById("m-state"), tempbox = document.getElementById("tempbox");
+bClass.onclick = () => { mode = "class"; bClass.setAttribute("aria-pressed","true"); bState.setAttribute("aria-pressed","false"); tempbox.hidden = true; paint(); };
+bState.onclick = () => { mode = "state"; bState.setAttribute("aria-pressed","true"); bClass.setAttribute("aria-pressed","false"); tempbox.hidden = false; paint(); };
+const tIn = document.getElementById("temp"), tOut = document.getElementById("tempout");
+tIn.oninput = () => { T = +tIn.value; tOut.textContent = fmtNum(T) + " °C"; paint(); };
+
+/* ---------- Markierungen ---------- */
+function clearMarks() {
+  Object.values(cells).forEach(c => c.classList.remove("hl","dim","selected"));
+  pse.querySelectorAll(".glabel.on,.plabel.on").forEach(n => n.classList.remove("on"));
+}
+function markCol(e) {
+  EL.filter(x => x.col === e.col && x.row <= 7).forEach(x => cells[x.sym].classList.add("hl"));
+  if (e.kind === "hg") glabels["hg" + e.group].classList.add("on");
+  else if (e.kind === "ng") glabels["ng" + e.group].filter(n => +n.dataset.col === e.col).forEach(n => n.classList.add("on"));
+}
+function markRow(e) {
+  EL.filter(x => x.row === e.row).forEach(x => cells[x.sym].classList.add("hl"));
+  plabels[e.period].classList.add("on");
+}
+
+/* ---------- Infokarte ---------- */
+let current = null;
+function renderCard(e) {
+  const s = state(e, mode === "state" ? T : 25);
+  const tLabel = mode === "state" ? `bei ${fmtNum(T)} °C` : "bei 25 °C";
+  const fam = familySentence(e);
+  const colorVar = mode === "class" ? (CLASS[e.cls][2] ? `var(${CLASS[e.cls][2]})` : "var(--unknown)") : `var(--${{"fest":"solid","flüssig":"liquid","gasförmig":"gas"}[s] || "unknown"})`;
+  card.innerHTML = `
+    <div class="big" style="background:${colorVar}"><span>${e.z}</span><b>${e.sym}</b><span>${e.name}</span></div>
+    <h3>${e.name} <span class="pill" style="background:${CLASS[e.cls][2] ? `var(${CLASS[e.cls][2]})` : "var(--unknown)"}">${CLASS[e.cls][0]}</span> ${RADIO(e.z) ? '<span class="pill">☢ radioaktiv</span>' : ""}</h3>
+    <p class="sent">${positionSentence(e)}${fam ? " " + fam : ""}</p>
+    <dl>
+      <div><dt>Siedetemp.</dt><dd>${fmtNum(e.bp)} °C${SUBLIM.has(e.sym) ? " (subl.)" : ""}</dd></div>
+      <div><dt>Schmelztemp.</dt><dd>${fmtNum(e.mp)} °C</dd></div>
+      <div><dt>Dichte</dt><dd>${fmtD(e)} ${e.d === null ? "" : unitD(e)}</dd></div>
+    </dl>
+    <p class="sent" style="grid-column:1/-1"><b>Aggregatzustand ${tLabel}:</b> <span class="pill" style="background:${`var(--${{"fest":"solid","flüssig":"liquid","gasförmig":"gas"}[s] || "unknown"})`}">${s}</span>${NOTE[e.sym] ? `<br><small style="color:var(--muted)">${NOTE[e.sym]}</small>` : ""}</p>`;
+}
+function select(e, opts = {}) {
+  current = e;
+  clearMarks();
+  if (!opts.noMarks) { markCol(e); markRow(e); }
+  cells[e.sym].classList.add("selected");
+  renderCard(e);
+}
+
+/* ---------- Bereiche (Tabs) ---------- */
+const TABS = ["entdecken","so-gehts","ueben"];
+let tab = "entdecken";
+function route() {
+  const h = location.hash.replace("#", "");
+  tab = TABS.includes(h) ? h : "entdecken";
+  TABS.forEach(t => {
+    document.getElementById("p-" + t).hidden = t !== tab;
+    const a = document.getElementById("t-" + t);
+    if (t === tab) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current");
+  });
+  if (tab === "so-gehts") startWalk();
+  else if (tab === "ueben") newQ();
+  else if (current) select(current);
+}
+window.addEventListener("hashchange", route);
+
+function onCell(e) {
+  if (tab === "ueben" && qmode === "find" && !answered) return checkFind(e);
+  if (tab === "so-gehts") { walkSel.value = e.sym; startWalk(); return; }
+  select(e);
+}
+
+/* ---------- So geht's ---------- */
+const walkSel = document.getElementById("walk-el");
+EL.filter(e => e.kind === "hg" && e.mp !== null).forEach(e => walkSel.add(new Option(`${e.name} (${e.sym})`, e.sym)));
+walkSel.value = "Br";
+walkSel.onchange = startWalk;
+let posStep = 0, aggStep = 0;
+function walkEl() { return BY[walkSel.value]; }
+function renderSteps() {
+  const e = walkEl();
+  const fam = familySentence(e);
+  const posItems = [
+    ["Suche das Element im stoffbezogenen Ordnungssystem.", `${e.name} hat das Symbol ${e.sym}. Das Kärtchen ist oben eingerahmt.`],
+    ["Gehe vom Element nach oben und gib die römische Ziffer als Nummer der Hauptgruppe an.", `${e.name} steht in der ${ORD[e.group]} Hauptgruppe (${ROMAN[e.group]}).${fam ? " " + fam : ""}`],
+    ["Gehe vom Element nach links und gib die Zahl als Nummer der Periode an.", `${e.name} befindet sich in der ${ORD[e.period]} Periode.`],
+  ];
+  const aggItems = [
+    ["Suche das Element im Ordnungssystem.", positionSentence(e)],
+    ["Lies die Schmelz- und die Siedetemperatur des Elements ab (mittlere und obere Zahl).", tempSentence(e)],
+    ["Vergleiche die Schmelz- und die Siedetemperatur mit der Raumtemperatur von 25 °C.", stateSentence(e)],
+  ];
+  const draw = (id, items, step) => {
+    document.getElementById(id).innerHTML = items.map(([q, a], i) =>
+      `<li class="${i === step - 1 ? "active" : ""} ${i < step ? "done" : ""}"><span class="n">${i + 1}</span><div>${q}<div class="ans">${a}</div></div></li>`).join("");
+  };
+  draw("steps-pos", posItems, posStep);
+  draw("steps-agg", aggItems, aggStep);
+  document.getElementById("pos-next").disabled = posStep >= 3;
+  document.getElementById("agg-next").disabled = aggStep >= 3;
+}
+function walkMarks(which) {
+  const e = walkEl();
+  current = e; clearMarks();
+  cells[e.sym].classList.add("selected");
+  renderCard(e);
+  if (which === "pos") { if (posStep >= 2) markCol(e); if (posStep >= 3) markRow(e); }
+  if (which === "agg" && aggStep >= 1) { markCol(e); markRow(e); }
+}
+function startWalk() { posStep = 0; aggStep = 0; renderSteps(); walkMarks("pos"); }
+document.getElementById("pos-next").onclick = () => { posStep = Math.min(3, posStep + 1); renderSteps(); walkMarks("pos"); };
+document.getElementById("agg-next").onclick = () => { aggStep = Math.min(3, aggStep + 1); renderSteps(); walkMarks("agg"); };
+document.getElementById("pos-reset").onclick = () => { posStep = 0; renderSteps(); walkMarks("pos"); };
+document.getElementById("agg-reset").onclick = () => { aggStep = 0; renderSteps(); walkMarks("agg"); };
+
+/* ---------- Üben ---------- */
+let qmode = "pos", qEl = null, answered = false, right = 0, total = 0, streak = 0;
+const quiz = document.getElementById("quiz");
+const optNg = document.getElementById("opt-ng");
+document.querySelectorAll(".modes button").forEach(b => b.onclick = () => {
+  qmode = b.dataset.mode;
+  document.querySelectorAll(".modes button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  newQ();
+});
+optNg.onchange = () => newQ();
+function pool() {
+  const base = EL.filter(e => e.row <= 7 && e.period <= 6 && e.mp !== null && !RADIO(e.z));
+  if (qmode === "pos" || qmode === "find") return base.filter(e => e.kind === "hg");
+  if (qmode === "class") return (optNg.checked ? base : base.filter(e => e.kind === "hg"));
+  return optNg.checked ? base : base.filter(e => e.kind === "hg");
+}
+function pick() { const p = pool(); let e; do { e = p[Math.floor(Math.random() * p.length)]; } while (qEl && p.length > 1 && e === qEl); return e; }
+function score(ok) {
+  total++; if (ok) { right++; streak++; } else streak = 0;
+  document.getElementById("sc").textContent = `${right} / ${total}`;
+  document.getElementById("streak").textContent = streak >= 3 ? `${streak} richtig in Folge!` : "";
+}
+document.getElementById("sc-reset").onclick = () => { right = total = streak = 0; document.getElementById("sc").textContent = "0 / 0"; document.getElementById("streak").textContent = ""; };
+
+function feedback(ok, html) {
+  const f = quiz.querySelector(".feedback");
+  f.className = "feedback show " + (ok ? "ok" : "no");
+  f.innerHTML = `<b>${ok ? "Richtig!" : "Leider nicht."}</b> ${html}`;
+  quiz.querySelector("#next").disabled = false;
+  quiz.querySelector("#next").focus();
+}
+const minicard = e => `<div class="minicard"><span class="t">${e.name}</span><span class="s">${e.sym}</span><span class="v">${fmtNum(e.bp)}<br>${fmtNum(e.mp)}<br>${fmtD(e)}</span></div>`;
+
+function newQ() {
+  answered = false; qEl = pick();
+  clearMarks(); current = null;
+  card.innerHTML = `<p class="sent" style="grid-column:1/-1;color:var(--muted)">Übungsmodus: Die Infokarte erscheint, sobald du geantwortet hast.</p>`;
+  const tail = `<div class="feedback" role="status"></div><div class="row"><button class="btn" id="next" disabled>Nächste Aufgabe</button></div>`;
+  if (qmode === "pos") {
+    cells[qEl.sym].classList.add("selected");
+    quiz.innerHTML = `<p class="q">Beschreibe die Position von <u>${qEl.name}</u>.</p>
+      <div class="choices" id="cg"><span class="lbl">Hauptgruppe</span>${[1,2,3,4,5,6,7,8].map(g => `<button class="choice" data-g="${g}" aria-pressed="false">${ROMAN[g]}</button>`).join("")}</div>
+      <div class="choices" id="cp"><span class="lbl">Periode</span>${[1,2,3,4,5,6,7].map(p => `<button class="choice" data-p="${p}" aria-pressed="false">${p}</button>`).join("")}</div>
+      <div class="row" style="margin-top:0"><button class="btn" id="check" disabled>Prüfen</button></div>${tail}`;
+    let g = null, p = null;
+    const upd = () => { quiz.querySelector("#check").disabled = !(g && p) || answered; };
+    quiz.querySelectorAll("#cg .choice").forEach(b => b.onclick = () => { if (answered) return; g = +b.dataset.g; quiz.querySelectorAll("#cg .choice").forEach(x => x.setAttribute("aria-pressed", String(x === b))); upd(); });
+    quiz.querySelectorAll("#cp .choice").forEach(b => b.onclick = () => { if (answered) return; p = +b.dataset.p; quiz.querySelectorAll("#cp .choice").forEach(x => x.setAttribute("aria-pressed", String(x === b))); upd(); });
+    quiz.querySelector("#check").onclick = () => {
+      answered = true; upd();
+      const ok = g === qEl.group && p === qEl.period;
+      quiz.querySelectorAll("#cg .choice").forEach(x => { if (+x.dataset.g === qEl.group) x.classList.add("right"); else if (+x.dataset.g === g) x.classList.add("wrong"); });
+      quiz.querySelectorAll("#cp .choice").forEach(x => { if (+x.dataset.p === qEl.period) x.classList.add("right"); else if (+x.dataset.p === p) x.classList.add("wrong"); });
+      score(ok); select(qEl); feedback(ok, positionSentence(qEl));
+    };
+  } else if (qmode === "find") {
+    quiz.innerHTML = `<p class="q">Klicke im Ordnungssystem oben auf das Element in der <u>${ORD[qEl.group]} Hauptgruppe</u> und der <u>${ORD[qEl.period]} Periode</u>.</p>
+      <p style="color:var(--muted);margin:0">Tipp: Suche zuerst die römische Ziffer oben, dann die Zahl links.</p>${tail}`;
+  } else if (qmode === "agg") {
+    quiz.innerHTML = `<p class="q">Welchen Aggregatzustand hat <u>${qEl.name}</u> bei Raumtemperatur (25 °C)?</p>
+      ${minicard(qEl)}<p style="margin:0 0 10px;font-size:14px;color:var(--muted)">Oben: Siedetemperatur · Mitte: Schmelztemperatur (°C) · Unten: Dichte</p>
+      <div class="choices">${["fest","flüssig","gasförmig"].map(s => `<button class="choice" data-s="${s}">${s}</button>`).join("")}</div>${tail}`;
+    quiz.querySelectorAll(".choice").forEach(b => b.onclick = () => {
+      if (answered) return; answered = true;
+      const sol = state(qEl, 25), ok = b.dataset.s === sol;
+      quiz.querySelectorAll(".choice").forEach(x => { if (x.dataset.s === sol) x.classList.add("right"); else if (x === b) x.classList.add("wrong"); });
+      score(ok); select(qEl); feedback(ok, stateSentence(qEl));
+    });
+  } else {
+    quiz.innerHTML = `<p class="q">Ist <u>${qEl.name}</u> (${qEl.sym}) ein Metall, ein Halbmetall oder ein Nichtmetall?</p>
+      <div class="choices">${[["m","Metall"],["h","Halbmetall"],["n","Nichtmetall"]].map(([k, l]) => `<button class="choice" data-k="${k}">${l}</button>`).join("")}</div>
+      <p style="margin:0;font-size:14px;color:var(--muted)">Edelgase zählen zu den Nichtmetallen. Schau auf die Lage im Ordnungssystem: links oder rechts?</p>${tail}`;
+    quiz.querySelectorAll(".choice").forEach(b => b.onclick = () => {
+      if (answered) return; answered = true;
+      const sol = qEl.cls === "e" ? "n" : qEl.cls, ok = b.dataset.k === sol;
+      quiz.querySelectorAll(".choice").forEach(x => { if (x.dataset.k === sol) x.classList.add("right"); else if (x === b) x.classList.add("wrong"); });
+      score(ok); select(qEl);
+      const side = sol === "m" ? "links" : sol === "n" ? "rechts" : "an der Grenze zwischen Metallen und Nichtmetallen";
+      feedback(ok, `${qEl.name} ist ein${sol === "m" ? "" : ""} ${({m:"Metall",h:"Halbmetall",n:"Nichtmetall"})[sol]}${qEl.cls === "e" ? " (Edelgas)" : ""}. Es steht im Ordnungssystem ${side}.`);
+    });
+  }
+  quiz.querySelector("#next").onclick = newQ;
+}
+function checkFind(e) {
+  answered = true;
+  const ok = e === qEl;
+  cells[e.sym].classList.add(ok ? "flash-good" : "flash-bad");
+  setTimeout(() => cells[e.sym].classList.remove("flash-good","flash-bad"), 1400);
+  score(ok); select(qEl);
+  feedback(ok, ok ? `Das ist ${qEl.name} (${qEl.sym}).` : `Du hast ${e.name} angeklickt. ${positionSentence(e)} Gesucht war ${qEl.name} (${qEl.sym}).`);
+}
+
+/* ---------- Familientabelle ---------- */
+document.getElementById("famtable").innerHTML = [1,2,3,4,5,6,7,8].map(g =>
+  `<tr><td style="padding:5px 8px;border-bottom:1px solid var(--rule);font-weight:700;color:var(--accent)">${ROMAN[g]}</td><td style="padding:5px 8px;border-bottom:1px solid var(--rule)">${FAM[g]}</td></tr>`).join("");
+
+paint();
+select(BY.C);
+route();
+})();
+</script>
+</body>
+</html>
