@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Bausteine der Materie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f6f3ec; --card:#fffdf8; --ink:#1d2230; --muted:#5d6475; --line:#ddd6c6;
+  --metal:#9aa1ab; --metal-l:#e9ebee; --yellow:#e7b416; --yellow-l:#fbefc4;
+  --red:#d2462b; --red-l:#f8ddd5; --blue:#2f95d3; --blue-l:#d6ebf7; --noble:#8b77c9; --noble-l:#e7e1f6;
+  --ok:#2e8b57; --bad:#c0392b;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:"Atkinson Hyperlegible",system-ui,sans-serif;background:var(--paper);color:var(--ink);line-height:1.5;font-size:16px}
+h1,h2,h3{font-family:"Fraunces",Georgia,serif;line-height:1.15;margin:0}
+header{padding:22px 18px 10px;max-width:1100px;margin:0 auto}
+header h1{font-size:clamp(1.7rem,4.5vw,2.6rem);font-weight:800;letter-spacing:-.01em}
+header p{margin:.4rem 0 0;color:var(--muted);max-width:60ch}
+nav{position:sticky;top:0;z-index:5;background:rgba(246,243,236,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+nav .inner{max-width:1100px;margin:0 auto;display:flex;gap:6px;overflow-x:auto;padding:10px 14px;scrollbar-width:none}
+nav .inner::-webkit-scrollbar{display:none}
+nav button{flex:0 0 auto;font:inherit;font-size:.95rem;border:1.5px solid var(--line);background:var(--card);color:var(--ink);padding:7px 13px;border-radius:999px;cursor:pointer;white-space:nowrap}
+nav button[aria-current="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+main{max-width:1100px;margin:0 auto;padding:18px 14px 60px}
+.view{display:none}.view.active{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.lead{font-size:1.05rem;max-width:68ch;margin:0 0 16px}
+.kicker{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.btn{font:inherit;font-weight:700;border:none;border-radius:10px;padding:10px 14px;cursor:pointer;background:var(--ink);color:#fff;display:inline-flex;align-items:center;gap:6px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.on{background:#3b4a6b}
+
+/* Übersicht */
+.ov{display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:var(--card)}
+.ov .q{padding:16px 12px;text-align:center;cursor:pointer;transition:background .2s;position:relative}
+@media(hover:hover){.ov .q:hover{background:#f3efe4}}
+.ov .q:focus-visible{background:#f3efe4;outline:none}
+.ov .q:active,.res:active{background:#efe9da}
+.ov .q:nth-child(odd){border-right:1.5px solid #b9b2a2}
+.ov .q.top{border-bottom:1.5px solid #b9b2a2}
+.ov .q svg{width:110px;height:90px;display:block;margin:0 auto 4px}
+.ov .q .lbl{font-weight:700;font-size:1.02rem}
+.ov .q .lbl small{display:block;font-weight:400;color:var(--muted);font-size:.85rem}
+.chip{display:inline-block;margin-top:8px;font-size:.85rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.chip.m{background:var(--metal-l)} .chip.y{background:var(--yellow-l)} .chip.i{background:linear-gradient(90deg,var(--red-l),var(--blue-l))}
+.results{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.res{cursor:pointer;text-align:center;padding:14px 8px;transition:transform .15s, box-shadow .15s}
+@media(hover:hover){.res:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.07)}}
+.res svg{width:100%;max-width:130px;height:90px}
+.res h3{font-size:1.1rem;margin-top:4px}
+.res p{margin:.2rem 0 0;font-size:.85rem;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px;font-size:.92rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.tipbox{margin-top:16px;border-left:4px solid var(--yellow);background:#fff8e2;padding:12px 14px;border-radius:0 12px 12px 0}
+.hl-m{background:var(--metal-l);padding:0 4px;border-radius:4px}
+.hl-y{background:var(--yellow-l);padding:0 4px;border-radius:4px}
+.hl-r{background:var(--red-l);padding:0 4px;border-radius:4px}
+.hl-b{background:var(--blue-l);padding:0 4px;border-radius:4px}
+
+/* Strukturansichten */
+.sv{display:grid;grid-template-columns:1fr;gap:14px}
+.stagewrap{padding:10px}
+.stage svg{width:100%;height:auto;display:block;touch-action:manipulation}
+.stage .p{cursor:pointer}
+.anim .p{transition:transform 1.1s cubic-bezier(.45,.05,.25,1)}
+.forces{pointer-events:none}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.msg{min-height:3.2em;margin-top:10px;padding:10px 12px;border-radius:10px;background:#f1ede2;font-size:.95rem}
+.info dl{margin:0;display:grid;grid-template-columns:1fr;gap:10px}
+.info dt{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.info dd{margin:2px 0 0}
+.info ul{margin:4px 0 0;padding-left:1.1em}
+.merk{margin-top:14px;padding:12px 14px;border-radius:12px;font-weight:700}
+.badge{display:inline-block;font-size:.8rem;font-weight:700;padding:2px 9px;border-radius:999px;margin-right:4px}
+.temp{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.temp input{flex:1;min-width:160px;accent-color:var(--red)}
+.phase{font-weight:700;padding:3px 10px;border-radius:999px;background:var(--blue-l)}
+.hint{font-size:.85rem;color:var(--muted);margin-top:6px}
+
+/* Baukasten */
+.slots{display:flex;align-items:center;gap:10px;justify-content:center;flex-wrap:wrap;margin:6px 0 16px}
+.slot{width:86px;height:86px;border:2.5px dashed #b9b2a2;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--card);font-size:.8rem;color:var(--muted)}
+.slot.filled{border-style:solid;color:var(--ink)}
+.slot b{font-size:1.9rem;font-family:"Fraunces",serif;line-height:1}
+.plus{font-size:1.8rem;font-weight:700;color:var(--muted)}
+.palette h3{font-size:1rem;margin:12px 0 6px}
+.els{display:flex;flex-wrap:wrap;gap:6px}
+.el{font:inherit;width:58px;height:58px;border-radius:12px;border:1.5px solid rgba(0,0,0,.12);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}
+.el b{font-size:1.25rem}.el small{font-size:.62rem}
+.el.M{background:var(--metal-l)}.el.N{background:var(--yellow-l)}.el.E{background:var(--noble-l)}
+.el:active{transform:scale(.95)}
+.result{margin-top:16px}
+.result .rgrid{display:grid;grid-template-columns:1fr;gap:12px;align-items:center}
+@media(min-width:700px){.result .rgrid{grid-template-columns:160px 1fr}}
+.result svg.th{width:100%;max-width:160px;height:110px;margin:0 auto;display:block}
+.formula{font-family:"Fraunces",serif;font-size:1.9rem;font-weight:800}
+.steps{margin:6px 0 0;padding-left:1.1em}
+
+/* Vergleich */
+.pick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.pick label{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);cursor:pointer;font-weight:700}
+.pick input{accent-color:var(--ink)}
+.cmp-head,.cmp-row{display:grid;gap:8px}
+.cmp-head{position:sticky;top:var(--navh,60px);z-index:2;background:var(--paper);padding:6px 0}
+.cmp-head div{text-align:center;font-family:"Fraunces",serif;font-weight:700;padding:8px 4px;border-radius:12px}
+.cmp-head svg{width:100%;max-width:90px;height:56px;display:block;margin:0 auto}
+.cmp-row{margin-top:10px}
+.cmp-label{grid-column:1/-1;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:4px}
+.cmp-cell{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 10px;font-size:.93rem}
+.col-m{background:var(--metal-l)!important}.col-y{background:var(--yellow-l)!important}.col-i{background:linear-gradient(135deg,var(--red-l),var(--blue-l))!important}
+
+/* Quiz */
+.qitem{display:grid;grid-template-columns:1fr;gap:8px;padding:12px 0;border-bottom:1px solid var(--line)}
+@media(min-width:700px){.qitem{grid-template-columns:1fr auto;align-items:center}}
+.qitem .name{font-weight:700}
+.qitem .name small{font-weight:400;color:var(--muted)}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{font:inherit;font-size:.88rem;padding:7px 11px;border-radius:10px;border:1.5px solid var(--line);background:#fff;cursor:pointer}
+.opt.correct{background:#d8f1e2;border-color:var(--ok);font-weight:700}
+.opt.wrong{background:#f8dcd8;border-color:var(--bad);text-decoration:line-through}
+.fb{grid-column:1/-1;font-size:.9rem;padding:6px 10px;border-radius:8px}
+.fb.ok{background:#e7f6ed}.fb.no{background:#fbe9e6}
+.mc{padding:14px 0;border-bottom:1px solid var(--line)}
+.mc p{margin:0 0 8px;font-weight:700}
+.mc .opts{flex-direction:column;align-items:stretch}
+.mc .opt{text-align:left}
+.score{position:sticky;bottom:12px;margin-top:18px;display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--ink);color:#fff;padding:12px 16px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.score b{font-size:1.2rem}
+.score .btn{background:#fff;color:var(--ink)}
+.sec-title{margin:22px 0 4px;font-size:1.3rem}
+
+/* ===== Touch & iPad ===== */
+html{-webkit-text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom)}
+button,input,.q,.res,.slot{touch-action:manipulation}
+.stage,.ov,.slot,.el,nav{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.btn{min-height:48px;transition:transform .1s}
+.btn:active{transform:scale(.97)}
+nav button{min-height:44px}
+.opt{min-height:44px}
+.opt:active,.el:active,nav button:active{transform:scale(.97)}
+input[type=range]{height:44px}
+input[type=range]::-webkit-slider-thumb{width:30px;height:30px}
+.stage{border-radius:12px;background:#fbf9f3}
+nav{padding-top:env(safe-area-inset-top)}
+
+@media (min-width:700px){
+  body{font-size:18px}
+  header{padding:30px 28px 14px}
+  main{padding:24px 28px 80px}
+  nav .inner{padding:12px 28px;justify-content:center;flex-wrap:wrap}
+  nav button{font-size:1.02rem;padding:10px 20px;min-height:48px}
+  .card{padding:22px;border-radius:20px}
+  .lead{font-size:1.12rem}
+  .btn{font-size:1.02rem;padding:12px 18px;min-height:52px;border-radius:12px}
+  .controls{gap:10px}
+  .msg{font-size:1.02rem;min-height:4em;padding:14px 16px}
+  .hint{font-size:.92rem}
+  /* Übersicht wie die Vorlage: Ergebnis-Karten groß */
+  .ov .q{padding:24px 18px}
+  .ov .q svg{width:150px;height:120px}
+  .ov .q .lbl{font-size:1.2rem}
+  .ov .q .lbl small{font-size:.95rem}
+  .chip{font-size:.95rem;padding:7px 14px}
+  .results{gap:16px;margin-top:18px}
+  .res{padding:20px 12px}
+  .res svg{max-width:180px;height:120px}
+  .res h3{font-size:1.3rem}
+  .res p{font-size:.95rem}
+  .legend{font-size:1rem;gap:28px}
+  /* Strukturansichten: Bühne groß, Infos daneben bzw. darunter in 2 Spalten */
+  .info dl{grid-template-columns:1fr 1fr;gap:16px 22px}
+  .info dl > div:nth-child(2),.info dl > div:nth-child(4){grid-column:1/-1}
+  .info dt{font-size:.82rem}
+  .merk{font-size:1.05rem}
+  /* Baukasten */
+  .slot{width:110px;height:110px;font-size:.92rem}
+  .slot b{font-size:2.4rem}
+  .els{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px}
+  .el{width:auto;height:78px;border-radius:14px}
+  .el b{font-size:1.55rem}.el small{font-size:.74rem}
+  .formula{font-size:2.3rem}
+  .result .rgrid{grid-template-columns:220px 1fr;gap:22px}
+  .result svg.th{max-width:220px;height:150px}
+  /* Vergleich */
+  .pick label{padding:10px 18px;min-height:48px;font-size:1rem}
+  .pick input{width:22px;height:22px}
+  .cmp-head svg{max-width:120px;height:72px}
+  .cmp-cell{font-size:1rem;padding:12px 14px}
+  /* Quiz */
+  .opt{font-size:1rem;padding:10px 16px;min-height:48px;border-radius:12px}
+  .qitem{padding:16px 0}
+  .fb{font-size:1rem;padding:10px 12px}
+  .score{padding:14px 22px}
+}
+/* iPad quer & große iPads: Bühne links, Infos rechts */
+@media (min-width:1000px){
+  .sv{grid-template-columns:1.35fr 1fr;align-items:start}
+  .sv > .stagewrap{position:sticky;top:calc(var(--navh,72px) + 14px)}
+  .info dl{grid-template-columns:1fr}
+  .info dl > div{grid-column:auto!important}
+  main,header,nav .inner{max-width:1280px}
+}
+/* iPad hoch: Info unter der Bühne */
+@media (min-width:700px) and (max-width:999px){
+  .sv{grid-template-columns:1fr}
+  nav .inner{flex-wrap:nowrap;justify-content:stretch;gap:6px;padding:10px 20px}
+  nav button{flex:1 1 0;padding:10px 4px;font-size:.95rem}
+  .stage svg{max-height:52vh}
+}
+</style>
+</head>
+<body>
+
+<!-- gemeinsame SVG-Definitionen -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="g-metal" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#e6e8eb"/><stop offset="1" stop-color="#a9aeb6"/></radialGradient>
+    <radialGradient id="g-yel" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff6c9"/><stop offset=".55" stop-color="#f6d35a"/><stop offset="1" stop-color="#d9a514"/></radialGradient>
+    <radialGradient id="g-cat" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffb39d"/><stop offset=".55" stop-color="#e05a3a"/><stop offset="1" stop-color="#a8301a"/></radialGradient>
+    <radialGradient id="g-an" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#d9f1ff"/><stop offset=".55" stop-color="#6cc0ef"/><stop offset="1" stop-color="#2a86c0"/></radialGradient>
+    <radialGradient id="g-noble" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#f1ecff"/><stop offset=".55" stop-color="#b6a6e6"/><stop offset="1" stop-color="#7d68c0"/></radialGradient>
+    <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1d2230"/></marker>
+    <marker id="ahr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/></marker>
+  </defs>
+</svg>
+
+<header>
+  <div class="kicker">Chemie · Teilchenmodell</div>
+  <h1>Bausteine der Materie</h1>
+  <p>Aus welchen Teilchen bestehen Stoffe – und wie halten sie zusammen? Erkunde Metallgitter, Moleküle und Ionengitter, probiere Experimente aus und vergleiche.</p>
+</header>
+
+<nav><div class="inner" id="tabs">
+  <button data-v="uebersicht">Übersicht</button>
+  <button data-v="metallgitter">Metallgitter</button>
+  <button data-v="molekuele">Moleküle</button>
+  <button data-v="ionengitter">Ionengitter</button>
+  <button data-v="baukasten">Baukasten</button>
+  <button data-v="vergleich">Vergleich</button>
+  <button data-v="quiz">Quiz</button>
+</div></nav>
+
+<main>
+
+<!-- ============ ÜBERSICHT ============ -->
+<section class="view" id="v-uebersicht">
+  <p class="lead">Alles hängt davon ab, <b>welche Teilchen</b> aufeinandertreffen – und ob sie sich <b>in alle Richtungen</b> (ungerichtet) oder <b>nur in eine bestimmte Richtung</b> (gerichtet) anziehen. Tippe auf ein Feld, um mehr zu erfahren.</p>
+
+  <div class="ov">
+    <div class="q top" tabindex="0" data-go="metallgitter">
+      <svg viewBox="0 0 110 90" id="ic-metal"></svg>
+      <div class="lbl">Metall-Atome<small>ziehen sich in alle Richtungen an</small></div>
+      <span class="chip m">bilden → Metallgitter</span>
+    </div>
+    <div class="q top" tabindex="0" data-go="molekuele">
+      <svg viewBox="0 0 110 90" id="ic-nonmetal"></svg>
+      <div class="lbl">Nichtmetall-Atome<small>(außer Edelgas-Atome) ziehen sich gerichtet an</small></div>
+      <span class="chip y">bilden → Moleküle</span>
+    </div>
+    <div class="q" tabindex="0" data-go="ionengitter">
+      <svg viewBox="0 0 110 90" id="ic-cat"></svg>
+      <div class="lbl">Metall-Kationen<small>positiv geladen (+)</small></div>
+      <span class="chip i">bilden mit Anionen → Ionengitter</span>
+    </div>
+    <div class="q" tabindex="0" data-go="ionengitter">
+      <svg viewBox="0 0 110 90" id="ic-an"></svg>
+      <div class="lbl">Nichtmetall-Anionen<small>negativ geladen (−)</small></div>
+      <span class="chip i">bilden mit Kationen → Ionengitter</span>
+    </div>
+  </div>
+
+  <div class="results">
+    <div class="card res" data-go="metallgitter"><svg viewBox="0 0 130 90" id="th-o-m"></svg><h3>Metallgitter</h3><p>z. B. Eisen, Kupfer</p></div>
+    <div class="card res" data-go="molekuele"><svg viewBox="0 0 130 90" id="th-o-y"></svg><h3>Molekül</h3><p>z. B. Sauerstoff, Wasser</p></div>
+    <div class="card res" data-go="ionengitter"><svg viewBox="0 0 130 90" id="th-o-i"></svg><h3>Ionengitter</h3><p>z. B. Kochsalz</p></div>
+  </div>
+
+  <div class="legend">
+    <span><svg width="44" height="30" viewBox="0 0 44 30"><g stroke="#1d2230" stroke-width="1.6" stroke-dasharray="3 2" marker-end="url(#ah)"><line x1="22" y1="15" x2="40" y2="15"/><line x1="22" y1="15" x2="6" y2="4"/><line x1="22" y1="15" x2="8" y2="27"/><line x1="22" y1="15" x2="30" y2="1"/><line x1="22" y1="15" x2="30" y2="29"/></g></svg> ungerichtete Anziehungskräfte</span>
+    <span><svg width="54" height="20" viewBox="0 0 54 20"><g stroke="#1d2230" stroke-width="1.6" stroke-dasharray="3 2"><line x1="2" y1="10" x2="22" y2="10" marker-end="url(#ah)"/><line x1="52" y1="10" x2="32" y2="10" marker-end="url(#ah)"/></g></svg> gerichtete Anziehungskräfte</span>
+  </div>
+
+  <div class="tipbox"><b>So liest du die Grafik:</b> Oben stehen <span class="hl-m">ungeladene Metall-Atome</span> und <span class="hl-y">ungeladene Nichtmetall-Atome</span>. Unten stehen <b>geladene</b> Teilchen, die <b>Ionen</b>: <span class="hl-r">Kationen (+)</span> und <span class="hl-b">Anionen (−)</span>. Jede Teilchensorte führt zu einem anderen Bauprinzip.</div>
+</section>
+
+<!-- ============ METALLGITTER ============ -->
+<section class="view" id="v-metallgitter">
+  <div class="sv">
+    <div class="card stagewrap">
+      <div class="stage" id="st-metal"></div>
+      <div class="controls">
+        <button class="btn" data-act="toggle">Gitter bilden ▶</button>
+        <button class="btn ghost" data-act="forces">Anziehungskräfte zeigen</button>
+        <button class="btn ghost" data-act="exp">🔨 Experiment: Hammerschlag</button>
+      </div>
+      <div class="msg" data-msg>Noch liegen die Metall-Atome ungeordnet herum. Tippe auf <b>„Gitter bilden“</b>.</div>
+      <div class="hint">Tipp: Tippe auf ein Atom, um seine Anziehungskräfte zu sehen.</div>
+    </div>
+    <div class="card info">
+      <span class="badge" style="background:var(--metal-l)">Metalle</span>
+      <h2 style="margin:6px 0 12px">Metallgitter</h2>
+      <dl>
+        <div><dt>Bausteine</dt><dd>Metall-Atome (ungeladen), z. B. Eisen-, Kupfer- oder Aluminium-Atome</dd></div>
+        <div><dt>Anziehungskräfte</dt><dd><b>Ungerichtet:</b> Jedes Atom zieht seine Nachbarn in <b>alle Richtungen</b> gleichermaßen an. Deshalb lagern sich immer mehr Atome dicht an – es entsteht ein riesiges, regelmäßiges Gitter.</dd></div>
+        <div><dt>Bindungsart</dt><dd>Metallbindung</dd></div>
+        <div><dt>Typische Eigenschaften</dt><dd><ul>
+          <li>leiten elektrischen Strom und Wärme</li>
+          <li>glänzen metallisch</li>
+          <li>sind verformbar (biegen statt brechen)</li>
+          <li>meist fest mit hoher Schmelztemperatur (Ausnahme: Quecksilber ist flüssig)</li></ul></dd></div>
+        <div><dt>Beispiele</dt><dd>Eisen, Kupfer, Aluminium, Gold, Magnesium – und Legierungen wie Messing (Kupfer + Zink)</dd></div>
+      </dl>
+      <div class="merk" style="background:var(--metal-l)">Merke: Metall-Atome + ungerichtete Anziehung → Metallgitter</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MOLEKÜLE ============ -->
+<section class="view" id="v-molekuele">
+  <div class="sv">
+    <div class="card stagewrap">
+      <div class="stage" id="st-mol"></div>
+      <div class="controls">
+        <button class="btn" data-act="toggle">Moleküle bilden ▶</button>
+        <button class="btn ghost" data-act="forces">Anziehungskräfte zeigen</button>
+      </div>
+      <div class="temp">
+        <span>🌡️ Temperatur</span>
+        <input type="range" min="0" max="100" value="70" id="tempRange" aria-label="Temperatur">
+        <span class="phase" id="phaseLbl">gasförmig</span>
+      </div>
+      <div class="msg" data-msg>Hier liegen einzelne Sauerstoff-Atome. Tippe auf <b>„Moleküle bilden“</b>.</div>
+      <div class="hint">Experiment: Schiebe den Temperaturregler. Was passiert mit den Molekülen – und was bleibt gleich?</div>
+    </div>
+    <div class="card info">
+      <span class="badge" style="background:var(--yellow-l)">Molekulare Stoffe</span>
+      <h2 style="margin:6px 0 12px">Moleküle</h2>
+      <dl>
+        <div><dt>Bausteine</dt><dd>Nichtmetall-Atome (ungeladen), z. B. Sauerstoff-, Wasserstoff-, Chlor- oder Stickstoff-Atome – <b>aber nicht</b> Edelgas-Atome (Helium, Neon, Argon …). Diese bleiben einzeln.</dd></div>
+        <div><dt>Anziehungskräfte</dt><dd><b>Gerichtet:</b> Die Atome ziehen sich nur <b>zwischen ganz bestimmten Partnern</b> an. So entstehen kleine, abgeschlossene Teilchen mit fester Zusammensetzung: die Moleküle. Zwischen den Molekülen wirken nur schwache Kräfte.</dd></div>
+        <div><dt>Bindungsart</dt><dd>Elektronenpaarbindung (auch: Atombindung)</dd></div>
+        <div><dt>Typische Eigenschaften</dt><dd><ul>
+          <li>meist niedrige Schmelz- und Siedetemperaturen</li>
+          <li>bei Raumtemperatur oft gasförmig oder flüssig</li>
+          <li>leiten keinen elektrischen Strom</li></ul></dd></div>
+        <div><dt>Beispiele</dt><dd>Sauerstoff O₂, Stickstoff N₂, Chlor Cl₂, Wasser H₂O, Kohlenstoffdioxid CO₂</dd></div>
+      </dl>
+      <div class="merk" style="background:var(--yellow-l)">Merke: Nichtmetall-Atome + gerichtete Anziehung → Moleküle</div>
+      <p class="hint">Ausnahme für Profis: Kohlenstoff-Atome bilden im Diamanten kein kleines Molekül, sondern ein riesiges Atomgitter.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ IONENGITTER ============ -->
+<section class="view" id="v-ionengitter">
+  <div class="sv">
+    <div class="card stagewrap">
+      <div class="stage" id="st-ion"></div>
+      <div class="controls">
+        <button class="btn" data-act="toggle">Gitter bilden ▶</button>
+        <button class="btn ghost" data-act="forces">Anziehungskräfte zeigen</button>
+        <button class="btn ghost" data-act="exp">🔨 Experiment: Hammerschlag</button>
+      </div>
+      <div class="msg" data-msg>Hier schwirren Natrium-Kationen (Na⁺, rot) und Chlorid-Anionen (Cl⁻, blau) umher. Tippe auf <b>„Gitter bilden“</b>.</div>
+      <div class="hint">Tipp: Tippe auf ein Ion, um seine Anziehungskräfte zu sehen.</div>
+    </div>
+    <div class="card info">
+      <span class="badge" style="background:linear-gradient(90deg,var(--red-l),var(--blue-l))">Salze</span>
+      <h2 style="margin:6px 0 12px">Ionengitter</h2>
+      <dl>
+        <div><dt>Bausteine</dt><dd><span class="hl-r">Metall-Kationen (+)</span> und <span class="hl-b">Nichtmetall-Anionen (−)</span>. Sie entstehen, wenn Metall-Atome Elektronen an Nichtmetall-Atome abgeben.</dd></div>
+        <div><dt>Anziehungskräfte</dt><dd><b>Ungerichtet:</b> Jedes Ion zieht alle entgegengesetzt geladenen Ionen in <b>alle Richtungen</b> an. Jedes Kation ist deshalb von Anionen umgeben und umgekehrt – es entsteht ein riesiges Gitter (Kristall).</dd></div>
+        <div><dt>Bindungsart</dt><dd>Ionenbindung</dd></div>
+        <div><dt>Typische Eigenschaften</dt><dd><ul>
+          <li>sehr hohe Schmelztemperaturen, bei Raumtemperatur fest</li>
+          <li>hart, aber spröde (zerbrechen beim Hammerschlag)</li>
+          <li>leiten Strom nur als Schmelze oder gelöst in Wasser – als Feststoff nicht</li></ul></dd></div>
+        <div><dt>Beispiele</dt><dd>Natriumchlorid (Kochsalz) NaCl, Magnesiumoxid MgO, Calciumfluorid CaF₂, Kaliumbromid KBr</dd></div>
+      </dl>
+      <div class="merk" style="background:linear-gradient(90deg,var(--red-l),var(--blue-l))">Merke: Kationen + Anionen + ungerichtete Anziehung → Ionengitter</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BAUKASTEN ============ -->
+<section class="view" id="v-baukasten">
+  <p class="lead">Wähle zwei Elemente aus. Der Baukasten zeigt dir, welches Bauprinzip entsteht – und warum.</p>
+  <div class="card">
+    <div class="slots">
+      <div class="slot" id="slot0" title="Leeren">Element 1</div>
+      <div class="plus">+</div>
+      <div class="slot" id="slot1" title="Leeren">Element 2</div>
+      <button class="btn ghost" id="clearSlots" style="margin-left:6px">Neu</button>
+    </div>
+    <div class="palette">
+      <h3>Metalle</h3><div class="els" id="els-M"></div>
+      <h3>Nichtmetalle</h3><div class="els" id="els-N"></div>
+      <h3>Edelgase</h3><div class="els" id="els-E"></div>
+    </div>
+  </div>
+  <div class="card result" id="bkResult" hidden></div>
+</section>
+
+<!-- ============ VERGLEICH ============ -->
+<section class="view" id="v-vergleich">
+  <p class="lead">Wähle aus, was du nebeneinanderstellen möchtest. Achte darauf, <b>wo sich die Bauprinzipien unterscheiden</b> – und wo sie sich ähneln.</p>
+  <div class="pick" id="cmpPick">
+    <label><input type="checkbox" value="m" checked> Metallgitter</label>
+    <label><input type="checkbox" value="y" checked> Moleküle</label>
+    <label><input type="checkbox" value="i" checked> Ionengitter</label>
+  </div>
+  <div id="cmp"></div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section class="view" id="v-quiz">
+  <p class="lead">Teste dein Wissen! Ordne zuerst die Stoffe dem richtigen Bauprinzip zu, dann beantworte die Fragen.</p>
+  <div class="card">
+    <h2 class="sec-title" style="margin-top:0">Teil 1: Welches Bauprinzip?</h2>
+    <div id="quizA"></div>
+    <h2 class="sec-title">Teil 2: Verstanden?</h2>
+    <div id="quizB"></div>
+  </div>
+  <div class="score"><span>Punkte: <b id="scoreVal">0</b> / <span id="scoreMax">0</span></span><button class="btn" id="quizReset">Neu starten</button></div>
+</section>
+
+</main>
+
+<script>
+const NS='http://www.w3.org/2000/svg';
+function S(tag,attrs,parent){const e=document.createElementNS(NS,tag);if(attrs)for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+const rand=(a,b)=>a+Math.random()*(b-a);
+const $=(s,r=document)=>r.querySelector(s);
+const STROKE={metal:'#8d939c',yel:'#c99a10',cat:'#8a2a17',an:'#2378ad',noble:'#6d5aae'};
+
+function particle(parent,type,r){
+  const g=S('g',{class:'p'},parent);
+  S('circle',{r,fill:`url(#g-${type})`,stroke:STROKE[type],'stroke-width':1.1},g);
+  if(type==='cat'||type==='an'){
+    const t=S('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':Math.max(10,r*.95),'font-weight':700,fill:'#1a1a1a','font-family':'Atkinson Hyperlegible, sans-serif'},g);
+    t.textContent=type==='cat'?'+':'−';
+  }
+  return g;
+}
+function place(g,x,y){g.style.transform=`translate(${x}px,${y}px)`;g._x=x;g._y=y;}
+
+/* ---------- kleine Grafiken (Übersicht, Vergleich, Baukasten) ---------- */
+function sphereStr(x,y,r,type,sign){
+  let s=`<circle cx="${x}" cy="${y}" r="${r}" fill="url(#g-${type})" stroke="${STROKE[type]}" stroke-width="1"/>`;
+  if(sign) s+=`<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="${Math.max(8,r)}" font-weight="700">${sign}</text>`;
+  return s;
+}
+function arrowsStr(x,y,r,angles,len,col='#1d2230'){
+  return angles.map(a=>{const c=Math.cos(a*Math.PI/180),s=Math.sin(a*Math.PI/180);
+    return `<line x1="${x+c*(r+3)}" y1="${y+s*(r+3)}" x2="${x+c*(r+3+len)}" y2="${y+s*(r+3+len)}" stroke="${col}" stroke-width="1.6" stroke-dasharray="3 2" marker-end="url(#ah)"/>`}).join('');
+}
+const RADIAL=[-60,-110,0,60,120,180,-160+20];
+function thumb(kind){
+  let s='';
+  if(kind==='m'){
+    for(let r=0;r<4;r++)for(let c=0;c<5;c++){const x=22+c*20+(r%2?10:0),y=18+r*17;s+=sphereStr(x,y,10,'metal');}
+  } else if(kind==='y'){
+    const ms=[[38,28,-20],[92,24,15],[60,58,5],[22,70,40],[104,66,-30]];
+    ms.forEach(([x,y,a])=>{const c=Math.cos(a*Math.PI/180)*8,sn=Math.sin(a*Math.PI/180)*8;s+=sphereStr(x-c,y-sn,9,'yel')+sphereStr(x+c,y+sn,9,'yel');});
+  } else if(kind==='i'){
+    for(let r=0;r<4;r++)for(let c=0;c<6;c++){const x=17+c*19,y=16+r*19;if((r+c)%2===0)s+=sphereStr(x,y,10.5,'an','−');}
+    for(let r=0;r<4;r++)for(let c=0;c<6;c++){const x=17+c*19,y=16+r*19;if((r+c)%2===1)s+=sphereStr(x,y,6.5,'cat','+');}
+  } else if(kind==='e'){
+    [[25,25],[80,20],[55,55],[100,65],[20,70]].forEach(([x,y])=>s+=sphereStr(x,y,9,'noble'));
+  }
+  return s;
+}
+function fillThumb(id,kind){const e=document.getElementById(id);if(e)e.innerHTML=thumb(kind);}
+
+// Übersichts-Icons
+$('#ic-metal').innerHTML=sphereStr(55,45,17,'metal')+arrowsStr(55,45,17,[-120,-60,0,55,95,150],16);
+$('#ic-nonmetal').innerHTML=sphereStr(24,45,14,'yel')+sphereStr(86,45,14,'yel')+
+  `<g stroke="#1d2230" stroke-width="1.6" stroke-dasharray="3 2"><line x1="41" y1="45" x2="53" y2="45" marker-end="url(#ah)"/><line x1="69" y1="45" x2="57" y2="45" marker-end="url(#ah)"/></g>`;
+$('#ic-cat').innerHTML=sphereStr(55,45,11,'cat','+')+arrowsStr(55,45,11,[-120,-60,0,60,100,160],15);
+$('#ic-an').innerHTML=sphereStr(55,45,19,'an','−')+arrowsStr(55,45,19,[-120,-60,10,60,95,160],14);
+fillThumb('th-o-m','m');fillThumb('th-o-y','y');fillThumb('th-o-i','i');
+document.querySelectorAll('[data-go]').forEach(el=>{
+  const go=()=>{location.hash=el.dataset.go;};
+  el.addEventListener('click',go);
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});
+});
+
+/* ---------- Gitter-Ansichten (Metall & Ionen) ---------- */
+function latticeView(sectionId,stageId,kind){
+  const sec=document.getElementById(sectionId);
+  const stage=document.getElementById(stageId);
+  const svg=S('svg',{viewBox:'0 0 420 260',role:'img','aria-label':kind==='metal'?'Metall-Atome':'Ionen'},stage);
+  const layer=S('g',{},svg), fx=S('g',{},svg), forces=S('g',{class:'forces'},svg);
+  const msg=$('[data-msg]',sec), bToggle=$('[data-act=toggle]',sec), bForces=$('[data-act=forces]',sec), bExp=$('[data-act=exp]',sec);
+  const parts=[];
+  if(kind==='metal'){
+    for(let r=0;r<6;r++)for(let c=0;c<8;c++)
+      parts.push({r,c,type:'metal',rad:19,hx:48+c*38+(r%2?19:0),hy:40+r*33});
+  } else {
+    // erst Anionen zeichnen (größer), dann Kationen
+    const all=[];for(let r=0;r<5;r++)for(let c=0;c<8;c++){const t=(r+c)%2?'cat':'an';all.push({r,c,type:t,rad:t==='an'?22:14,hx:52+c*40,hy:48+r*40});}
+    all.filter(p=>p.type==='an').concat(all.filter(p=>p.type==='cat')).forEach(p=>parts.push(p));
+  }
+  parts.forEach(p=>{p.g=particle(layer,p.type,p.rad);p.g.addEventListener('click',()=>select(p));});
+  let assembled=false, showF=false, sel=parts.find(p=>p.r===2&&p.c===3&&(kind==='metal'||p.type==='cat')), busy=false, expDone=false;
+
+  function scatter(){parts.forEach(p=>{p.sx=rand(25,395);p.sy=rand(25,235);place(p.g,p.sx,p.sy);});}
+  function home(){parts.forEach(p=>place(p.g,p.hx,p.hy));}
+  scatter();
+
+  function drawForces(){
+    forces.innerHTML='';
+    if(!showF||!sel)return;
+    const x=sel.g._x,y=sel.g._y,r=sel.rad;
+    let angs;
+    if(assembled) angs = kind==='metal'?[0,60,120,180,240,300]:[0,90,180,270];
+    else angs=[-115,-55,5,60,110,170];
+    const len=kind==='metal'?(assembled?13:18):(assembled?(sel.type==='cat'?10:3):16);
+    S('circle',{cx:x,cy:y,r:r+3,fill:'none',stroke:'#1d2230','stroke-width':2},forces);
+    forces.insertAdjacentHTML('beforeend',arrowsStr(x,y,r,angs,Math.max(len,8)));
+    if(assembled){
+      // Nachbarn hervorheben
+      parts.forEach(q=>{
+        const d=Math.hypot(q.g._x-x,q.g._y-y);
+        const lim=kind==='metal'?40:42;
+        if(q!==sel&&d<lim) S('circle',{cx:q.g._x,cy:q.g._y,r:q.rad+2,fill:'none',stroke:'#1d2230','stroke-width':1.3,'stroke-dasharray':'2 2'},forces);
+      });
+    }
+  }
+  function select(p){if(busy)return;sel=p;if(!showF){showF=true;bForces.classList.add('on');bForces.textContent='Kräfte ausblenden';}
+    drawForces();
+    if(kind==='ion') say(p.type==='cat'
+      ?'Dieses <b>Kation (+)</b> zieht alle Anionen (−) in seiner Umgebung an – in <b>alle Richtungen</b> gleichzeitig.'
+      :'Dieses <b>Anion (−)</b> zieht alle Kationen (+) in seiner Umgebung an – in <b>alle Richtungen</b> gleichzeitig.');
+    else say('Dieses Metall-Atom zieht seine Nachbarn in <b>alle Richtungen</b> an. Im Gitter hat es bis zu 6 Nachbarn in einer Ebene (im Raum sogar 12).');
+  }
+  function say(h){msg.innerHTML=h;}
+  function setAnim(on){svg.classList.toggle('anim',on);layer.classList.toggle('anim',on);sec.querySelector('.stage').classList.toggle('anim',on);}
+  function afterMove(fn,ms=1150){busy=true;forces.innerHTML='';setTimeout(()=>{busy=false;drawForces();fn&&fn();},ms);}
+
+  function toggle(){
+    if(busy)return;
+    resetExp(false);
+    assembled=!assembled; setAnim(true);
+    if(assembled){home();bToggle.textContent='Teilchen trennen ◀';
+      afterMove(()=>say(kind==='metal'
+        ?'Weil sich die Atome <b>in alle Richtungen</b> anziehen, lagern sie sich ganz dicht und regelmäßig aneinander: ein <b>Metallgitter</b>. In echt besteht es aus Milliarden von Atomen – in alle drei Raumrichtungen.'
+        :'Jedes Kation ist von Anionen umgeben, jedes Anion von Kationen. Es gibt <b>keine einzelnen „NaCl-Teilchen“</b> – nur ein riesiges <b>Ionengitter</b>. Die Formel NaCl gibt das Zahlenverhältnis an: 1 : 1.'));
+    } else {scatter();bToggle.textContent='Gitter bilden ▶';afterMove(()=>say('Die Teilchen sind wieder getrennt. Bilde das Gitter erneut!'));}
+  }
+  bToggle.addEventListener('click',toggle);
+  bForces.addEventListener('click',()=>{showF=!showF;bForces.classList.toggle('on',showF);bForces.textContent=showF?'Kräfte ausblenden':'Anziehungskräfte zeigen';drawForces();
+    if(showF) select(sel);});
+
+  function resetExp(rehome=true){
+    fx.innerHTML='';
+    if(expDone){expDone=false;bExp.textContent='🔨 Experiment: Hammerschlag';if(rehome&&assembled){setAnim(true);home();afterMove(()=>say('Zurückgesetzt. Probiere es noch einmal!'),1150);}}
+  }
+  bExp.addEventListener('click',()=>{
+    if(busy)return;
+    if(expDone){resetExp(true);return;}
+    const run=()=>{
+      expDone=true;bExp.textContent='↺ Zurücksetzen';setAnim(true);
+      if(kind==='metal'){
+        say('Ein Hammerschlag verschiebt die oberen Atomschichten …');
+        parts.forEach(p=>{if(p.r<3)place(p.g,p.hx+38,p.hy);});
+        afterMove(()=>{
+          S('line',{x1:20,x2:410,y1:122,y2:122,stroke:'#2e8b57','stroke-width':2,'stroke-dasharray':'6 4'},fx);
+          say('✅ Die Schichten sind <b>aufeinander abgeglitten</b>. Jedes Atom hat wieder Nachbarn, die es in alle Richtungen anziehen – das Gitter bleibt erhalten. <b>Metalle sind verformbar.</b>');
+        });
+      } else {
+        say('Ein Hammerschlag verschiebt die oberen Ionenschichten um ein Ion …');
+        parts.forEach(p=>{if(p.r<2)place(p.g,p.hx+40,p.hy);});
+        afterMove(()=>{
+          for(let c=0;c<7;c++){
+            const x=52+(c+1)*40, y=108;
+            S('line',{x1:x,y1:y-4,x2:x,y2:y-18,stroke:'#c0392b','stroke-width':2.4,'marker-end':'url(#ahr)'},fx);
+            S('line',{x1:x,y1:y+4,x2:x,y2:y+18,stroke:'#c0392b','stroke-width':2.4,'marker-end':'url(#ahr)'},fx);
+          }
+          say('⚠️ Jetzt liegen <b>gleich geladene Ionen</b> übereinander: + über +, − über −. Gleiche Ladungen <b>stoßen sich ab</b>!');
+          busy=true;
+          setTimeout(()=>{
+            parts.forEach(p=>{if(p.r<2)place(p.g,p.hx+50,p.hy-18);});
+            fx.innerHTML='';
+            S('path',{d:'M15 104 l20 8 l18 -8 l22 9 l20 -7 l25 8 l22 -8 l24 9 l20 -7 l25 8 l22 -8 l24 8 l20 -6 l25 7 l20 -5 l25 6',fill:'none',stroke:'#c0392b','stroke-width':2},fx);
+            setTimeout(()=>{busy=false;say('💥 Der Kristall <b>zerbricht</b>. Deshalb sind Salze zwar hart, aber <b>spröde</b> – ganz anders als Metalle.');},1150);
+          },1300);
+        });
+      }
+    };
+    if(!assembled){assembled=true;setAnim(true);home();bToggle.textContent='Teilchen trennen ◀';say('Zuerst wird das Gitter gebildet …');afterMove(run);}
+    else run();
+  });
+  return {show(){},hide(){}};
+}
+
+/* ---------- Molekül-Ansicht mit Temperatur ---------- */
+function moleculeView(){
+  const sec=document.getElementById('v-molekuele');
+  const stage=document.getElementById('st-mol');
+  const W=420,H=260,R=15,HB=12; // halber Bindungsabstand
+  const svg=S('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'Nichtmetall-Atome und Moleküle'},stage);
+  S('rect',{x:4,y:4,width:W-8,height:H-8,rx:14,fill:'none',stroke:'#e3dccb','stroke-width':1.5},svg);
+  const layer=S('g',{},svg), forces=S('g',{class:'forces'},svg);
+  const msg=$('[data-msg]',sec), bToggle=$('[data-act=toggle]',sec), bForces=$('[data-act=forces]',sec);
+  const range=$('#tempRange'), phaseLbl=$('#phaseLbl');
+  const N=10, atoms=[], mols=[];
+  for(let i=0;i<2*N;i++){const g=particle(layer,'yel',R);const a={g,m:Math.floor(i/2)};g.addEventListener('click',()=>selectMol(a.m));atoms.push(a);}
+  for(let m=0;m<N;m++) mols.push({x:0,y:0,vx:0,vy:0,ang:0,va:0,sx:95+(m%5)*58,sy:112+Math.floor(m/5)*36});
+  let assembled=false, showF=false, selM=0, running=false, visible=false, busy=false, T=+range.value, lastPhase='';
+
+  function phase(){return T<25?'fest':T<55?'flüssig':'gasförmig';}
+  function scatter(){
+    const pts=[];
+    atoms.forEach(a=>{let x,y,ok,n=0;do{x=rand(30,W-30);y=rand(30,H-30);ok=pts.every(p=>Math.hypot(p[0]-x,p[1]-y)>36);n++;}while(!ok&&n<200);pts.push([x,y]);a.x=x;a.y=y;place(a.g,x,y);});
+  }
+  scatter();
+  function atomPos(m){const c=Math.cos(m.ang)*HB,s=Math.sin(m.ang)*HB;return [[m.x-c,m.y-s],[m.x+c,m.y+s]];}
+  function render(){
+    mols.forEach((m,i)=>{const [p,q]=atomPos(m);place(atoms[2*i].g,p[0],p[1]);place(atoms[2*i+1].g,q[0],q[1]);});
+    drawForces();
+  }
+  function drawForces(){
+    forces.innerHTML='';
+    if(!showF)return;
+    const a=atoms[2*selM], b=atoms[2*selM+1];
+    const ax=a.g._x,ay=a.g._y,bx=b.g._x,by=b.g._y;
+    if(!assembled){
+      const d=Math.hypot(bx-ax,by-ay),ux=(bx-ax)/d,uy=(by-ay)/d;
+      S('circle',{cx:ax,cy:ay,r:R+3,fill:'none',stroke:'#1d2230','stroke-width':2},forces);
+      S('circle',{cx:bx,cy:by,r:R+3,fill:'none',stroke:'#1d2230','stroke-width':2},forces);
+      const L=Math.min(28,d/2-R-6);
+      if(L>4){
+        S('line',{x1:ax+ux*(R+4),y1:ay+uy*(R+4),x2:ax+ux*(R+4+L),y2:ay+uy*(R+4+L),stroke:'#1d2230','stroke-width':1.8,'stroke-dasharray':'3 2','marker-end':'url(#ah)'},forces);
+        S('line',{x1:bx-ux*(R+4),y1:by-uy*(R+4),x2:bx-ux*(R+4+L),y2:by-uy*(R+4+L),stroke:'#1d2230','stroke-width':1.8,'stroke-dasharray':'3 2','marker-end':'url(#ah)'},forces);
+      }
+      S('line',{x1:ax,y1:ay,x2:bx,y2:by,stroke:'#1d2230','stroke-width':1,'stroke-dasharray':'1 5',opacity:.5},forces);
+    } else {
+      const mx=(ax+bx)/2,my=(ay+by)/2,ang=Math.atan2(by-ay,bx-ax)*180/Math.PI;
+      S('ellipse',{cx:0,cy:0,rx:HB+R+6,ry:R+6,fill:'none',stroke:'#1d2230','stroke-width':2,'stroke-dasharray':'5 3',transform:`translate(${mx},${my}) rotate(${ang})`},forces);
+      const t=S('text',{x:mx,y:my-R-12,'text-anchor':'middle','font-size':12,'font-weight':700,fill:'#1d2230'},forces);t.textContent='1 Molekül O₂';
+    }
+  }
+  function selectMol(m){if(busy)return;selM=m;if(!showF){showF=true;bForces.classList.add('on');bForces.textContent='Kräfte ausblenden';}drawForces();
+    say(assembled?'Die beiden Atome dieses Moleküls halten fest zusammen. Zu den <b>anderen</b> Molekülen gibt es nur <b>schwache</b> Anziehungskräfte.'
+      :'Dieses Atom zieht <b>gezielt ein Partner-Atom</b> an – die Anziehung ist <b>gerichtet</b>. Ist die Bindung entstanden, ist das Molekül „abgeschlossen“.');}
+  function say(h){msg.innerHTML=h;}
+
+  function step(){
+    const ph=phase();
+    for(const m of mols){
+      if(ph==='fest'){
+        m.vx+=(m.sx-m.x)*.08; m.vy+=(m.sy-m.y)*.08;
+        m.vx*=.6; m.vy*=.6;
+        m.vx+=rand(-1,1)*(.15+T*.02); m.vy+=rand(-1,1)*(.15+T*.02);
+        m.va+=(-m.ang)*.05+rand(-1,1)*.004; m.va*=.7;
+      } else if(ph==='flüssig'){
+        m.vy+=.12; const j=.25+(T-25)*.02; m.vx+=rand(-1,1)*j; m.vy+=rand(-1,1)*j;
+        m.vx*=.93; m.vy*=.93; m.va+=rand(-1,1)*.01; m.va*=.95;
+      } else {
+        const sp=Math.hypot(m.vx,m.vy)||.01, target=.6+(T-55)*.07;
+        m.vx*=1+(target/sp-1)*.05; m.vy*=1+(target/sp-1)*.05;
+        if(sp<.05){m.vx=rand(-1,1);m.vy=rand(-1,1);}
+        m.va+=rand(-1,1)*.004; m.va=Math.max(-.08,Math.min(.08,m.va));
+      }
+      m.x+=m.vx; m.y+=m.vy; m.ang+=m.va;
+      const mg=32;
+      if(m.x<mg){m.x=mg;m.vx=Math.abs(m.vx);} if(m.x>W-mg){m.x=W-mg;m.vx=-Math.abs(m.vx);}
+      if(m.y<mg-6){m.y=mg-6;m.vy=Math.abs(m.vy);} if(m.y>H-mg+6){m.y=H-mg+6;m.vy=-Math.abs(m.vy)*(ph==='flüssig'?.3:1);}
+    }
+    // einfache Stöße zwischen Molekülen
+    const D=ph==='fest'?30:38;
+    for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){
+      const a=mols[i],b=mols[j];let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.01;
+      if(d<D){const o=(D-d)/2,nx=dx/d,ny=dy/d;a.x-=nx*o;a.y-=ny*o;b.x+=nx*o;b.y+=ny*o;
+        const rv=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny; if(rv<0){a.vx+=rv*nx;a.vy+=rv*ny;b.vx-=rv*nx;b.vy-=rv*ny;}}
+    }
+  }
+  function loop(){if(!running)return;step();render();requestAnimationFrame(loop);}
+  function start(){if(running||!assembled||!visible)return;running=true;requestAnimationFrame(loop);}
+  function stop(){running=false;}
+
+  function updatePhase(){
+    const ph=phase();phaseLbl.textContent=ph;
+    phaseLbl.style.background=ph==='fest'?'var(--blue-l)':ph==='flüssig'?'#d9efe6':'var(--red-l)';
+    if(ph!==lastPhase&&assembled&&!busy){
+      lastPhase=ph;
+      say(ph==='fest'?'❄️ <b>Fest:</b> Die Moleküle liegen geordnet nebeneinander und schwingen nur leicht hin und her.'
+        :ph==='flüssig'?'💧 <b>Flüssig:</b> Die Moleküle bewegen sich schneller und gleiten aneinander vorbei, bleiben aber nah beisammen.'
+        :'💨 <b>Gasförmig:</b> Die Moleküle fliegen schnell und weit voneinander entfernt durch den Raum. <b>Die Moleküle selbst bleiben aber ganz!</b> Nur die schwachen Kräfte <i>zwischen</i> ihnen werden überwunden – deshalb sieden molekulare Stoffe schon bei niedriger Temperatur.');
+    }
+  }
+  range.addEventListener('input',()=>{T=+range.value;updatePhase();});
+
+  bToggle.addEventListener('click',()=>{
+    if(busy)return;
+    assembled=!assembled; stop(); stage.classList.add('anim'); busy=true;
+    if(assembled){
+      mols.forEach((m,i)=>{const a=atoms[2*i],b=atoms[2*i+1];
+        m.x=Math.min(W-34,Math.max(34,(a.g._x+b.g._x)/2));m.y=Math.min(H-34,Math.max(34,(a.g._y+b.g._y)/2));
+        m.ang=Math.atan2(b.g._y-a.g._y,b.g._x-a.g._x);m.vx=rand(-1,1);m.vy=rand(-1,1);m.va=0;});
+      // Überlappungen etwas auflösen
+      for(let k=0;k<40;k++){const save=T;step();T=save;}
+      mols.forEach(m=>{m.vx=rand(-1,1);m.vy=rand(-1,1);});
+      render();
+      bToggle.textContent='Moleküle trennen ◀';
+      say('Je zwei Sauerstoff-Atome ziehen sich <b>gerichtet</b> an und verbinden sich zu einem <b>Sauerstoff-Molekül O₂</b>.');
+    } else {
+      scatter(); bToggle.textContent='Moleküle bilden ▶'; drawForces();
+      say('Die Moleküle sind wieder in einzelne Atome getrennt. (In der Natur kommt Sauerstoff fast nur als O₂-Molekül vor.)');
+    }
+    forces.innerHTML='';
+    setTimeout(()=>{stage.classList.remove('anim');busy=false;drawForces();if(assembled){lastPhase=phase();start();
+      setTimeout(()=>{if(assembled&&!busy){lastPhase='';updatePhase();}},1800);}},1150);
+  });
+  bForces.addEventListener('click',()=>{showF=!showF;bForces.classList.toggle('on',showF);bForces.textContent=showF?'Kräfte ausblenden':'Anziehungskräfte zeigen';drawForces();if(showF)selectMol(selM);});
+  updatePhase(); lastPhase='';
+  return {show(){visible=true;start();},hide(){visible=false;stop();}};
+}
+
+const views={
+  metallgitter:latticeView('v-metallgitter','st-metal','metal'),
+  ionengitter:latticeView('v-ionengitter','st-ion','ion'),
+  molekuele:moleculeView()
+};
+
+/* ---------- Baukasten ---------- */
+const ELS=[
+  {s:'Li',n:'Lithium',t:'M',q:1},{s:'Na',n:'Natrium',t:'M',q:1},{s:'K',n:'Kalium',t:'M',q:1},{s:'Ag',n:'Silber',t:'M',q:1},
+  {s:'Mg',n:'Magnesium',t:'M',q:2},{s:'Ca',n:'Calcium',t:'M',q:2},{s:'Zn',n:'Zink',t:'M',q:2},{s:'Cu',n:'Kupfer',t:'M',q:2,pre:'Kupfer(II)-'},
+  {s:'Fe',n:'Eisen',t:'M',q:3,pre:'Eisen(III)-'},{s:'Al',n:'Aluminium',t:'M',q:3},
+  {s:'H',n:'Wasserstoff',t:'N',q:1,an:'hydrid',ion:'Hydrid'},{s:'C',n:'Kohlenstoff',t:'N'},{s:'N',n:'Stickstoff',t:'N',q:3,an:'nitrid',ion:'Nitrid'},
+  {s:'O',n:'Sauerstoff',t:'N',q:2,an:'oxid',ion:'Oxid'},{s:'F',n:'Fluor',t:'N',q:1,an:'fluorid',ion:'Fluorid'},{s:'S',n:'Schwefel',t:'N',q:2,an:'sulfid',ion:'Sulfid'},
+  {s:'Cl',n:'Chlor',t:'N',q:1,an:'chlorid',ion:'Chlorid'},{s:'Br',n:'Brom',t:'N',q:1,an:'bromid',ion:'Bromid'},{s:'I',n:'Iod',t:'N',q:1,an:'iodid',ion:'Iodid'},
+  {s:'He',n:'Helium',t:'E'},{s:'Ne',n:'Neon',t:'E'},{s:'Ar',n:'Argon',t:'E'}
+];
+const MOL={'H|H':['H₂','Wasserstoff'],'O|O':['O₂','Sauerstoff'],'N|N':['N₂','Stickstoff'],'F|F':['F₂','Fluor'],'Cl|Cl':['Cl₂','Chlor'],'Br|Br':['Br₂','Brom'],'I|I':['I₂','Iod'],
+ 'H|O':['H₂O','Wasser'],'Cl|H':['HCl','Chlorwasserstoff'],'C|O':['CO₂','Kohlenstoffdioxid'],'H|N':['NH₃','Ammoniak'],'C|H':['CH₄','Methan'],'H|S':['H₂S','Schwefelwasserstoff'],
+ 'O|S':['SO₂','Schwefeldioxid'],'F|H':['HF','Fluorwasserstoff'],'Br|H':['HBr','Bromwasserstoff'],'H|I':['HI','Iodwasserstoff'],'C|Cl':['CCl₄','Tetrachlormethan'],
+ 'S|S':['S₈','Schwefel'],'N|O':['NO₂','Stickstoffdioxid'],'C|S':['CS₂','Kohlenstoffdisulfid'],'Cl|O':['Cl₂O','Dichloroxid'],'F|O':['OF₂','Sauerstoffdifluorid']};
+const SUP={1:'⁺',2:'²⁺',3:'³⁺'},SUPN={1:'⁻',2:'²⁻',3:'³⁻'},SUB=['','','₂','₃','₄','₅','₆'];
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const slots=[null,null];
+ELS.forEach(e=>{
+  const b=document.createElement('button');b.className='el '+e.t;b.innerHTML=`<b>${e.s}</b><small>${e.n}</small>`;
+  b.addEventListener('click',()=>{const i=slots[0]===null?0:slots[1]===null?1:1;slots[i]=e;renderSlots();});
+  $('#els-'+e.t).appendChild(b);
+});
+[0,1].forEach(i=>$('#slot'+i).addEventListener('click',()=>{slots[i]=null;renderSlots();}));
+$('#clearSlots').addEventListener('click',()=>{slots[0]=slots[1]=null;renderSlots();});
+function renderSlots(){
+  [0,1].forEach(i=>{const s=$('#slot'+i),e=slots[i];s.classList.toggle('filled',!!e);
+    s.style.background=e?(e.t==='M'?'var(--metal-l)':e.t==='N'?'var(--yellow-l)':'var(--noble-l)'):'';
+    s.innerHTML=e?`<b>${e.s}</b>${e.n}`:`Element ${i+1}`;});
+  const box=$('#bkResult');
+  if(!slots[0]||!slots[1]){box.hidden=true;return;}
+  box.hidden=false; box.innerHTML=evaluate(slots[0],slots[1]);
+  box.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{location.hash=b.dataset.go;}));
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+const TYPN={M:'Metall',N:'Nichtmetall',E:'Edelgas'};
+function evaluate(a,b){
+  let kind,title,formula='',name='',steps=[],go=null;
+  if(a.t==='E'||b.t==='E'){
+    kind='e';title='Keine Verbindung: einzelne Atome';
+    steps=['Edelgas-Atome (Helium, Neon, Argon …) sind besonders stabil.','Sie gehen (fast) keine Bindungen ein – weder mit sich selbst noch mit anderen Atomen.','Edelgase bestehen deshalb aus <b>einzelnen Atomen</b>, nicht aus Molekülen.'];
+    formula=(a.t==='E'?a.s:b.s);name=(a.t==='E'?a.n:b.n)+' (einzelne Atome)';
+  } else if(a.t==='M'&&b.t==='M'){
+    kind='m';go='metallgitter';
+    if(a.s===b.s){title='Metall + Metall → Metallgitter';formula=a.s;name=a.n;
+      steps=[`${a.n}-Atome ziehen sich in alle Richtungen (ungerichtet) an.`,'Sie lagern sich dicht und regelmäßig zusammen.',`Es entsteht ein <b>Metallgitter</b> – das Metall ${a.n}.`];}
+    else{title='Metall + Metall → Metallgitter (Legierung)';formula=a.s+' + '+b.s;name=(a.s+b.s==='CuZn'||a.s+b.s==='ZnCu')?'Messing':'Legierung aus '+a.n+' und '+b.n;
+      steps=['Beide sind Metall-Atome und ziehen sich ungerichtet an.','Die Atome mischen sich in einem gemeinsamen Gitter.',`Es entsteht eine <b>Legierung</b> – ebenfalls ein Metallgitter.`];}
+  } else if(a.t==='N'&&b.t==='N'){
+    kind='y';go='molekuele';
+    const key=[a.s,b.s].sort().join('|');
+    if(key==='C|C'){title='Sonderfall: Kohlenstoff';formula='C';name='Diamant oder Graphit';
+      steps=['Kohlenstoff ist ein Nichtmetall – aber ein besonderes.','Seine Atome verbinden sich gerichtet mit sehr vielen Nachbarn.','Statt kleiner Moleküle entsteht ein <b>riesiges Atomgitter</b> (Diamant, Graphit).'];}
+    else{const r=MOL[key];title='Nichtmetall + Nichtmetall → Moleküle';
+      formula=r?r[0]:'?';name=r?r[1]:'Molekül aus '+a.n+' und '+b.n;
+      steps=[a.s===b.s?`${a.n}-Atome ziehen sich <b>gerichtet</b> an – nur zwischen bestimmten Partnern.`:`${a.n}- und ${b.n}-Atome ziehen sich <b>gerichtet</b> an.`,'Sie teilen sich Elektronenpaare (Elektronenpaarbindung).',`Es entstehen kleine, abgeschlossene Teilchen: <b>Moleküle</b>${r?' '+r[0]:''}.`];}
+  } else {
+    const m=a.t==='M'?a:b, n=a.t==='M'?b:a;
+    if(!n.q){kind='i';title='Sonderfall';formula='–';name='Metall + Kohlenstoff';
+      steps=['Metalle bilden mit Kohlenstoff besondere Stoffe (Carbide).','Für den Vergleich hier: Wähle lieber ein anderes Nichtmetall, z. B. Cl oder O.'];}
+    else{
+      kind='i';go='ionengitter';title='Metall + Nichtmetall → Ionengitter';
+      const g=gcd(m.q,n.q),nc=n.q/g,na=m.q/g;
+      formula=m.s+SUB[nc]+(n.s.length>1&&na>1?n.s+SUB[na]:n.s+SUB[na]);
+      name=(m.pre||m.n)+(m.pre?n.an:n.an);
+      const nm=m.pre?name:(m.n+n.an);name=nm.charAt(0).toUpperCase()+nm.slice(1);
+      steps=[`Jedes ${m.n}-Atom gibt ${m.q} Elektron${m.q>1?'en':''} ab → <span class="hl-r">${m.s}${SUP[m.q]}</span> (Kation).`,
+        `Jedes ${n.n}-Atom nimmt ${n.q} Elektron${n.q>1?'en':''} auf → <span class="hl-b">${n.s}${SUPN[n.q]}</span> (${n.ion}-Anion).`,
+        `Kationen und Anionen ziehen sich ungerichtet an → <b>Ionengitter</b>. Verhältnis ${nc} : ${na}.`];
+    }
+  }
+  const col=kind==='m'?'var(--metal-l)':kind==='y'?'var(--yellow-l)':kind==='e'?'var(--noble-l)':'linear-gradient(90deg,var(--red-l),var(--blue-l))';
+  return `<div class="kicker">${TYPN[a.t]} + ${TYPN[b.t]}</div>
+   <h2 style="margin:4px 0 12px;padding:8px 12px;border-radius:10px;background:${col}">${title}</h2>
+   <div class="rgrid"><svg class="th" viewBox="0 0 130 90">${thumb(kind)}</svg>
+   <div><div class="formula">${formula}</div><div style="font-weight:700">${name}</div>
+   <ol class="steps">${steps.map(s=>'<li>'+s+'</li>').join('')}</ol>
+   ${go?`<button class="btn ghost" data-go="${go}" style="margin-top:10px">Genauer ansehen →</button>`:''}</div></div>`;
+}
+
+/* ---------- Vergleich ---------- */
+const CMP=[
+  ['Bausteine (Teilchen)','Metall-Atome','Nichtmetall-Atome','Metall-Kationen (+) und Nichtmetall-Anionen (−)'],
+  ['Sind die Teilchen geladen?','nein','nein','ja – positiv und negativ'],
+  ['Anziehungskräfte','ungerichtet – in alle Richtungen','gerichtet – nur zwischen bestimmten Atomen','ungerichtet – in alle Richtungen'],
+  ['Bindungsart','Metallbindung','Elektronenpaarbindung (Atombindung)','Ionenbindung'],
+  ['Was entsteht?','ein riesiges Metallgitter','kleine, abgeschlossene Teilchen: Moleküle','ein riesiges Ionengitter (Kristall)'],
+  ['Schmelztemperatur','meist hoch','meist niedrig','sehr hoch'],
+  ['Zustand bei Raumtemperatur','fest (Ausnahme: Quecksilber)','oft gasförmig oder flüssig','fest'],
+  ['Leitet elektrischen Strom?','ja – fest und flüssig','nein','nur als Schmelze oder Lösung'],
+  ['Beim Hammerschlag …','verformbar – Schichten gleiten ab','Feststoffe meist weich oder brüchig','hart, aber spröde – zerbricht'],
+  ['Stoffgruppe','Metalle','molekulare Stoffe','Salze'],
+  ['Beispiele','Eisen, Kupfer, Aluminium','Sauerstoff O₂, Wasser H₂O, CO₂','Kochsalz NaCl, Magnesiumoxid MgO']
+];
+const CMPN={m:'Metallgitter',y:'Moleküle',i:'Ionengitter'},IDX={m:1,y:2,i:3};
+function renderCmp(){
+  const sel=[...document.querySelectorAll('#cmpPick input:checked')].map(i=>i.value);
+  const box=$('#cmp');
+  if(sel.length<2){box.innerHTML='<div class="card">Wähle mindestens <b>zwei</b> Bauprinzipien zum Vergleichen aus.</div>';return;}
+  const cols=`repeat(${sel.length},1fr)`;
+  let h=`<div class="cmp-head" style="grid-template-columns:${cols}">${sel.map(k=>`<div class="col-${k}"><svg viewBox="0 0 130 90">${thumb(k)}</svg>${CMPN[k]}</div>`).join('')}</div>`;
+  CMP.forEach(r=>{
+    const vals=sel.map(k=>r[IDX[k]]);const same=vals.every(v=>v===vals[0]);
+    h+=`<div class="cmp-row" style="grid-template-columns:${cols}"><div class="cmp-label">${r[0]} ${same?'<span class="badge" style="background:#d9efe6;text-transform:none;letter-spacing:0">gleich</span>':'<span class="badge" style="background:#fbe3c6;text-transform:none;letter-spacing:0">unterschiedlich</span>'}</div>${vals.map(v=>`<div class="cmp-cell">${v}</div>`).join('')}</div>`;
+  });
+  box.innerHTML=h;
+}
+document.querySelectorAll('#cmpPick input').forEach(i=>i.addEventListener('change',renderCmp));
+renderCmp();
+
+/* ---------- Quiz ---------- */
+const QA=[
+  ['Kupfer','Cu','m','Kupfer ist ein Metall – Kupfer-Atome bilden ein Metallgitter.'],
+  ['Kochsalz','Natriumchlorid, NaCl','i','Natrium (Metall) + Chlor (Nichtmetall) → Na⁺- und Cl⁻-Ionen im Ionengitter.'],
+  ['Sauerstoff','O₂','y','Zwei Sauerstoff-Atome (Nichtmetall) bilden ein O₂-Molekül.'],
+  ['Wasser','H₂O','y','Wasserstoff und Sauerstoff sind beide Nichtmetalle → Moleküle.'],
+  ['Eisen','Fe','m','Eisen ist ein Metall → Metallgitter.'],
+  ['Magnesiumoxid','MgO','i','Magnesium (Metall) + Sauerstoff (Nichtmetall) → Mg²⁺ und O²⁻ im Ionengitter.'],
+  ['Kohlenstoffdioxid','CO₂','y','Kohlenstoff und Sauerstoff sind Nichtmetalle → Moleküle.'],
+  ['Calciumfluorid','CaF₂','i','Calcium (Metall) + Fluor (Nichtmetall) → Ionengitter.'],
+  ['Messing','Kupfer + Zink','m','Zwei Metalle bilden eine Legierung – ebenfalls ein Metallgitter.'],
+  ['Chlor','Cl₂','y','Zwei Chlor-Atome (Nichtmetall) bilden ein Cl₂-Molekül.'],
+  ['Kaliumbromid','KBr','i','Kalium (Metall) + Brom (Nichtmetall) → Ionengitter.'],
+  ['Aluminium','Al','m','Aluminium ist ein Metall → Metallgitter.']
+];
+const QB=[
+  ['Welche Teilchen bauen ein Ionengitter auf?',['Metall-Atome und Nichtmetall-Atome','Metall-Kationen und Nichtmetall-Anionen','Nur Nichtmetall-Anionen','Moleküle'],1,'Im Ionengitter sitzen geladene Teilchen: positive Metall-Kationen und negative Nichtmetall-Anionen.'],
+  ['Was bedeutet „gerichtete Anziehungskraft“?',['Ein Teilchen zieht Nachbarn in alle Richtungen an.','Ein Atom zieht nur ganz bestimmte Partner-Atome an.','Gleiche Ladungen stoßen sich ab.','Teilchen bewegen sich in eine Richtung.'],1,'Gerichtet heißt: Die Anziehung wirkt nur zwischen bestimmten Atomen. So entstehen abgeschlossene Moleküle.'],
+  ['Warum zerbricht ein Kochsalz-Kristall beim Hammerschlag, ein Stück Kupfer aber nicht?',['Kochsalz ist weicher als Kupfer.','Im Salz geraten gleich geladene Ionen nebeneinander und stoßen sich ab.','Kupfer besteht aus Molekülen.','Im Kupfer gibt es gar keine Anziehungskräfte.'],1,'Verschiebt man Ionenschichten, liegen + neben + und − neben −. Die Abstoßung sprengt den Kristall. Metall-Atome sind ungeladen – die Schichten gleiten einfach ab.'],
+  ['Ein Stoff hat eine niedrige Siedetemperatur und leitet keinen Strom. Welches Bauprinzip liegt wahrscheinlich vor?',['Metallgitter','Ionengitter','Moleküle'],2,'Zwischen Molekülen wirken nur schwache Kräfte – sie sind leicht zu trennen. Und Moleküle sind ungeladen, darum keine Leitfähigkeit.'],
+  ['Warum bilden Helium-Atome keine Moleküle?',['Helium ist ein Metall.','Edelgas-Atome sind sehr stabil und gehen (fast) keine Bindungen ein.','Helium-Atome sind geladen.','Helium ist zu schwer.'],1,'Edelgase sind die Ausnahme bei den Nichtmetallen: Ihre Atome bleiben einzeln.']
+];
+let score=0;
+function buildQuiz(){
+  score=0;
+  const A=$('#quizA');A.innerHTML='';
+  QA.forEach(([n,f,ans,ex])=>{
+    const d=document.createElement('div');d.className='qitem';
+    d.innerHTML=`<div class="name">${n} <small>(${f})</small></div><div class="opts">${['m','y','i'].map(k=>`<button class="opt" data-k="${k}">${CMPN[k]}</button>`).join('')}</div>`;
+    d.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
+      if(d.dataset.done)return;d.dataset.done=1;
+      const ok=b.dataset.k===ans;if(ok)score++;
+      b.classList.add(ok?'correct':'wrong');
+      if(!ok)d.querySelector(`[data-k=${ans}]`).classList.add('correct');
+      const fb=document.createElement('div');fb.className='fb '+(ok?'ok':'no');fb.innerHTML=(ok?'✅ Richtig! ':'❌ Leider nicht. ')+ex;d.appendChild(fb);upd();
+    }));
+    A.appendChild(d);
+  });
+  const B=$('#quizB');B.innerHTML='';
+  QB.forEach(([q,opts,ans,ex])=>{
+    const d=document.createElement('div');d.className='mc';
+    d.innerHTML=`<p>${q}</p><div class="opts">${opts.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}</div>`;
+    d.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
+      if(d.dataset.done)return;d.dataset.done=1;const ok=+b.dataset.i===ans;if(ok)score++;
+      b.classList.add(ok?'correct':'wrong');if(!ok)d.querySelector(`[data-i="${ans}"]`).classList.add('correct');
+      const fb=document.createElement('div');fb.className='fb '+(ok?'ok':'no');fb.style.marginTop='8px';fb.innerHTML=(ok?'✅ Richtig! ':'❌ Leider nicht. ')+ex;d.appendChild(fb);upd();
+    }));
+    B.appendChild(d);
+  });
+  $('#scoreMax').textContent=QA.length+QB.length;upd();
+}
+function upd(){$('#scoreVal').textContent=score;}
+$('#quizReset').addEventListener('click',()=>{buildQuiz();window.scrollTo({top:0,behavior:'smooth'});});
+buildQuiz();
+
+/* ---------- Navigation ---------- */
+const VIEWS=['uebersicht','metallgitter','molekuele','ionengitter','baukasten','vergleich','quiz'];
+function route(){
+  let v=(location.hash||'').slice(1);if(!VIEWS.includes(v))v='uebersicht';
+  VIEWS.forEach(id=>{document.getElementById('v-'+id).classList.toggle('active',id===v);});
+  document.querySelectorAll('#tabs button').forEach(b=>{const on=b.dataset.v===v;b.setAttribute('aria-current',on);if(on)b.scrollIntoView({inline:'nearest',block:'nearest'});});
+  Object.entries(views).forEach(([k,o])=>k===v?o.show():o.hide());
+}
+document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{location.hash=b.dataset.v;window.scrollTo({top:0});}));
+window.addEventListener('hashchange',()=>{route();window.scrollTo({top:0});});
+function setNavH(){document.documentElement.style.setProperty('--navh',document.querySelector('nav').offsetHeight+'px');}
+window.addEventListener('resize',setNavH);setNavH();
+route();
+</script>
+</body>
+</html>
