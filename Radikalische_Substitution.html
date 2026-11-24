@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radikalische Substitution</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: ruhig, klar, für Schülerinnen der 10. Klasse – erklärend, ermutigend
+   IDEA: ein Laborheft, in dem man den Mechanismus Schritt für Schritt "ablaufen lässt"
+   PICTURE: große Lewis-Formeln mit Valenzstrichen, roten Radikal-Elektronen und blauen Halbpfeilen
+   COLOUR and TYPE: Bromfarbe (tiefes Rotbraun) als Band, Chlor-Gelbgrün für die Übung; Lexend + Atkinson Hyperlegible
+   LAYOUT: Stationsleiste oben, Formel-Bühne groß, darunter Erklärung | Arbeitsblatt-Kasten, Weiter-Leiste unten */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#15110f);--ink:light-dark(#1d1714,#f3ede8);--mut:light-dark(#5d524c,#b9ada5);
+--card:light-dark(#f7f2ee,#211a17);--line:light-dark(#e4d9d1,#3b302b);
+--br:light-dark(#8f2a0e,#ff9a6b);--cl:light-dark(#3e7a10,#b5e07a);
+--band:light-dark(#6b1f0b,#3f1306);--bandink:#fff3ec;
+--ea:light-dark(#1b5fd6,#8ab8ff);--re:light-dark(#e2261c,#ff6f61);
+--ok:light-dark(#17803d,#74dc9b);--no:light-dark(#b42318,#ff8a80);--sun:#f2b20d}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+body.cl{--band:light-dark(#d4e655,#36440a);--bandink:light-dark(#1d2306,#eef7c4)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 'Atkinson Hyperlegible',system-ui,sans-serif;overflow-x:clip;padding-bottom:90px}
+h1,h2,h3{font-family:Lexend,system-ui,sans-serif;line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:clamp(30px,4.5vw,46px);font-weight:700}h2{font-size:22px;font-weight:600;margin-bottom:10px}h3{font-size:18px;font-weight:600;margin-bottom:6px}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:3px solid var(--ea);outline-offset:2px}
+sub,sup{font-size:.7em;line-height:0}
+.rd{color:var(--re);font-weight:700;font-size:1.25em;line-height:0}
+.arw{display:inline-block;position:relative;margin:0 .3em}.arw small{position:absolute;left:50%;top:-.95em;transform:translateX(-50%);font-size:10.5px;line-height:1;color:var(--mut)}
+header{position:sticky;top:0;z-index:5;background:var(--band);color:var(--bandink);transition:background .4s}
+.top{display:flex;align-items:center;gap:12px;padding:10px max(4vw,16px) 0;font:600 15px Lexend,sans-serif;opacity:.9}
+nav{display:flex;gap:6px;overflow-x:auto;padding:10px max(4vw,16px) 12px;scrollbar-width:none}
+nav button{flex:none;min-height:44px;border:1.5px solid color-mix(in srgb,var(--bandink) 40%,transparent);background:transparent;border-radius:22px;padding:0 16px;font-size:15px;color:var(--bandink)}
+nav button[aria-current=true]{background:var(--bandink);color:var(--band);border-color:var(--bandink);font-weight:700}
+nav button.done::after{content:" ✓";opacity:.8}
+.hero{background:var(--band);color:var(--bandink);padding:6px max(4vw,16px) 30px;transition:background .4s}
+.kick{font:600 15px Lexend,sans-serif;opacity:.85;margin-bottom:6px}
+.hero p{max-width:62ch;margin:10px 0 0;font-size:18px;opacity:.95}
+main{max-width:1180px;margin:0 auto;padding:0 max(4vw,16px)}
+.stage{background:var(--card);border:1px solid var(--line);border-radius:20px;margin-top:-16px;position:relative;padding:12px 12px 16px}
+.sc{display:block;width:100%;height:auto}
+.sc text.at{font:700 26px 'Atkinson Hyperlegible',sans-serif;text-anchor:middle;dominant-baseline:central;fill:var(--ink)}
+.sc .at.H{fill:var(--mut);font-weight:400}.sc .at.Br{fill:var(--br)}.sc .at.Cl{fill:var(--cl)}
+.sc .bd{stroke:var(--ink);stroke-width:2.6;stroke-linecap:round;transition:stroke .4s}
+.sc .lp{stroke-width:2.6;stroke-linecap:round;stroke:var(--ink)}.sc .lp.Br{stroke:var(--br)}
+.sc .re{fill:var(--re)}.sc .lpd{fill:var(--ink)}.sc .lpd.Br{fill:var(--br)}
+.sc .fa{fill:none;stroke:var(--ea);stroke-width:2.8;stroke-linecap:round}
+.sc .hh{fill:var(--ea)}.sc .ah{fill:var(--ink)}
+.sc .pl{font:400 32px sans-serif;fill:var(--mut);text-anchor:middle;dominant-baseline:central}
+.sc .rxl{stroke:var(--ink);stroke-width:2.6}.sc .rl{font:15px 'Atkinson Hyperlegible',sans-serif;fill:var(--mut);text-anchor:middle}
+.sc .q{font:700 70px Lexend,sans-serif;fill:var(--line);text-anchor:middle;dominant-baseline:central}
+.sc .ar,.sc .pr,.sc .q{transition:opacity .6s}
+.p0 .ar,.p0 .pr,.p1 .pr{opacity:0}.p2 .q{opacity:0}
+.p1 .brk{stroke:var(--re);stroke-dasharray:3 7}
+.p2 .nb{stroke:var(--ea);stroke-width:3.4}
+.p1 .ar .fa{stroke-dasharray:300;animation:draw 1s ease-out both}
+@keyframes draw{from{stroke-dashoffset:300}to{stroke-dashoffset:0}}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin-top:6px}
+.seg{display:flex;flex-wrap:wrap;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg)}
+.seg button{min-height:46px;border:0;background:none;padding:0 16px;font-size:15px}
+.seg button+button{border-left:1.5px solid var(--line)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg);font-weight:700}
+.btn{min-height:46px;border:0;border-radius:14px;padding:0 20px;background:var(--br);color:#fff;font-weight:700}
+body.cl .btn{background:var(--cl);color:light-dark(#fff,#15200a)}
+.btn.ghost,body.cl .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:center;font-size:14px;color:var(--mut);margin-top:10px}
+.legend i{display:inline-block;vertical-align:middle;margin-right:6px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:22px;margin-top:26px;align-items:start}
+.txt ul{padding-left:1.2em;margin:.4em 0}.txt li{margin:.35em 0}.txt p{margin:.5em 0;max-width:68ch}
+.box{border-radius:16px;padding:16px 18px;border:1.5px solid var(--line)}
+.ws{background:var(--bg);border:2px dashed var(--br)}
+body.cl .ws{border-color:var(--cl)}
+.ws .eq{font-size:20px;background:var(--card);border-radius:10px;padding:10px 12px;margin:8px 0;overflow-x:auto;white-space:nowrap}
+.merk{background:light-dark(#fff6d8,#2c2610);border-color:light-dark(#efd98a,#5a4c1c)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.chips button{min-height:44px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);padding:0 14px;font-size:15px}
+.chips button[aria-pressed=true]{border-color:var(--br);background:var(--br);color:#fff}
+.qz{margin:12px 0 4px}.qq{font-weight:700;margin:0 0 8px}
+.opts{display:grid;gap:8px}
+.op{text-align:left;min-height:48px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);font-size:16px}
+.op.sel{border-color:var(--ea);box-shadow:inset 0 0 0 1.5px var(--ea)}
+.op.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--bg))}
+.op.no{border-color:var(--no);background:color-mix(in srgb,var(--no) 12%,var(--bg))}
+.fb{margin:8px 0 0;font-size:15.5px}.fb.ok{color:var(--ok)}.fb.no{color:var(--no)}.fb span{color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:10px}
+.stat{background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:10px 14px}
+.stat b{display:block;font:700 32px Lexend,sans-serif}.stat span{font-size:14px;color:var(--mut)}
+.stat.key{border-color:var(--re)}.stat.key b{color:var(--re)}
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;justify-content:center;padding:18px 6px}
+.fl{flex:1 1 200px;max-width:300px;border-radius:16px;padding:14px 16px;background:var(--bg);border:1.5px solid var(--line)}
+.fl h3{color:var(--br)}.fl .eq{font-size:16.5px;margin:14px 0 4px}
+.fla{align-self:center;font-size:28px;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:16px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 14px Lexend,sans-serif;color:var(--mut)}
+.task{counter-increment:t;border-top:1px solid var(--line);padding-top:6px}
+.task .qq::before{content:"Aufgabe " counter(t) ": ";color:var(--cl)}
+.score{font:700 18px Lexend,sans-serif}
+details{margin-top:14px}summary{min-height:44px;display:flex;align-items:center;font-weight:700;cursor:pointer}
+.foot{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;gap:10px;justify-content:space-between;align-items:center;padding:10px max(4vw,16px);background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--line)}
+.foot .btn{min-width:130px}.foot .pos{font-size:14px;color:var(--mut)}
+.pre{scroll-padding-top:72px}
+@media(max-width:600px){.top{display:none}.hero p{font-size:16.5px}.ws .eq{font-size:17px}.foot .pos{display:none}
+ table{font-size:14px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:7em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:6.5em;margin-inline-start:-7em;white-space:normal;color:var(--mut);font-size:13px}}
+.obs .pt{font:600 22px Lexend,sans-serif}.obs .lb{font:700 19px 'Atkinson Hyperlegible',sans-serif;text-anchor:middle}
+.sc .nm{font:15px 'Atkinson Hyperlegible',sans-serif;fill:var(--mut);text-anchor:middle}.sc .lt{font:700 18px Lexend,sans-serif;fill:var(--br);text-anchor:middle}
+.gasL{transition:fill-opacity 2.8s ease}.obs.on .gasL{fill-opacity:.06}.paperL{transition:fill 2.8s ease}.obs.on .paperL{fill:#d7263d}
+.obs .lbl{opacity:0;transition:opacity .8s 2.2s}.obs.on .lbl{opacity:1}
+.ov{padding:18px 20px}.ov h3{color:var(--br);font-size:20px;margin:18px 0 4px}.ov h3:first-child{margin-top:0}.ov .sl{margin:6px 0 0;font-weight:700;color:var(--mut)}.mini{max-width:900px}.mini .ar,.mini .q{display:none}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<header>
+  <div class="top">Radikalische Substitution · Ethan + Brom</div>
+  <nav id="nav" aria-label="Stationen"></nav>
+</header>
+<div class="hero" id="hero"></div>
+<main id="main"></main>
+<div class="foot">
+  <button class="btn ghost" id="prev">‹ Zurück</button>
+  <span class="pos" id="pos"></span>
+  <button class="btn" id="next">Weiter ›</button>
+</div>
+<script>
+{
+/* ---------- Formel-Zeichner ---------- */
+let DOT=false;
+const B=62, RD='<b class="rd">·</b>';
+const dir={n:[0,-1],s:[0,1],e:[1,0],w:[-1,0]};
+const rr=el=>el.length>1?22:13;
+function atom(x,y,el,lp='',rad=''){
+  let s=`<text class="at ${el}" x="${x}" y="${y}">${el}</text>`;const big=el.length>1;
+  for(const d of lp){const[dx,dy]=dir[d];const k=dx?(big?25:17):19;const cx=x+dx*k,cy=y+dy*k;
+    s+=DOT?(dx?`<circle class="lpd ${el}" cx="${cx}" cy="${cy-5}" r="2.9"/><circle class="lpd ${el}" cx="${cx}" cy="${cy+5}" r="2.9"/>`:`<circle class="lpd ${el}" cx="${cx-5}" cy="${cy}" r="2.9"/><circle class="lpd ${el}" cx="${cx+5}" cy="${cy}" r="2.9"/>`):dx?`<line class="lp ${el}" x1="${cx}" y1="${cy-7}" x2="${cx}" y2="${cy+7}"/>`:`<line class="lp ${el}" x1="${cx-7}" y1="${cy}" x2="${cx+7}" y2="${cy}"/>`}
+  if(rad){const[dx,dy]=dir[rad];const k=dx?(big?25:19):20;s+=`<circle class="re" cx="${x+dx*k}" cy="${y+dy*k}" r="4.6"/>`}
+  return s}
+function bond(x1,y1,x2,y2,r1,r2,c=''){const L=Math.hypot(x2-x1,y2-y1),ux=(x2-x1)/L,uy=(y2-y1)/L;
+  return `<line class="bd ${c}" x1="${x1+ux*r1}" y1="${y1+uy*r1}" x2="${x2-ux*r2}" y2="${y2-uy*r2}"/>`}
+function chain(x,y,n,o={}){const L=o.L||'H',Rt=o.R||'H',X=o.X||'Br',V=50;let s='';
+  for(let i=0;i<n;i++){const cx=x+i*B;
+    s+=atom(cx,y,'C','',(i==0&&L=='rad')?'w':(i==n-1&&Rt=='rad')?'e':'');
+    s+=atom(cx,y-V,'H')+bond(cx,y,cx,y-V,13,12)+atom(cx,y+V,'H')+bond(cx,y,cx,y+V,13,12);
+    if(i>0)s+=bond(cx-B,y,cx,y,13,13,o.nbi===i?'nb':'')}
+  if(L=='H')s+=atom(x-V,y,'H')+bond(x,y,x-V,y,13,12);
+  const xe=x+(n-1)*B;
+  if(Rt=='H')s+=atom(xe+V,y,'H')+bond(xe,y,xe+V,y,13,12,o.brk?'brk':'');
+  if(Rt=='X')s+=atom(xe+70,y,X,'nse')+bond(xe,y,xe+70,y,13,22,o.hx?'nb':'');
+  return s}
+const brR=(x,y,side)=>atom(x,y,'Br',side=='e'?'nsw':'nse',side);
+const br2=(x,y,brk,nb)=>atom(x,y,'Br','nsw')+bond(x,y,x+70,y,22,22,brk?'brk':nb?'nb':'')+atom(x+70,y,'Br','nse');
+const hbr=(x,y,nb)=>atom(x,y,'H')+bond(x,y,x+70,y,12,22,nb?'nb':'')+atom(x+70,y,'Br','nse');
+const plus=x=>`<text class="pl" x="${x}" y="130">+</text>`;
+const fish=d=>`<path class="fa" d="${d}" marker-end="url(#hh)"/>`;
+const sun=(x,y)=>`<g><circle cx="${x}" cy="${y}" r="10" fill="var(--sun)"/>${[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return `<line x1="${x+Math.cos(r)*15}" y1="${y+Math.sin(r)*15}" x2="${x+Math.cos(r)*23}" y2="${y+Math.sin(r)*23}" stroke="var(--sun)" stroke-width="3" stroke-linecap="round"/>`}).join('')}</g>`;
+const nm=(x,t)=>`<text class="nm" x="${x}" y="226">${t}</text>`;
+const vessel=(c,k)=>`<rect class="gas${k}" x="${c-60}" y="128" width="120" height="176" rx="8" fill="#a3410f" fill-opacity=".82"/><path d="M${c-64},112 V296 Q${c-64},308 ${c-52},308 H${c+52} Q${c+64},308 ${c+64},296 V112" fill="none" stroke="#9fb3c8" stroke-width="4"/><line x1="${c-74}" y1="112" x2="${c+74}" y2="112" stroke="#9fb3c8" stroke-width="4" stroke-linecap="round"/><rect class="paper${k}" x="${c-12}" y="62" width="24" height="64" rx="3" fill="#b9cf3e"/>`;
+const defs=`<defs><marker id="hh" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="10" refX="11" refY="5" orient="auto"><path class="hh" d="M0,0 L12,5 L0,5Z"/></marker><marker id="ah" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path class="ah" d="M0,0 L13,6 L0,12Z"/></marker></defs>`;
+function scene(s){return `<svg class="sc" viewBox="0 0 1000 260" role="img" aria-label="${s.alt}">${defs}
+  <g class="ed">${s.L}</g><g class="ar">${s.A}</g>
+  <line class="rxl" x1="425" y1="130" x2="497" y2="130" marker-end="url(#ah)"/><text class="rl" x="460" y="112">${s.lab||''}</text>
+  <text class="q" x="760" y="130">?</text><g class="pr">${s.R}</g></svg>`}
+
+/* ---------- Szenen ---------- */
+const SC={
+ intro:{alt:'Ethan und Brom reagieren nur im Licht zu Bromethan und Bromwasserstoff',L:chain(90,130,2)+plus(250)+br2(300,130)+sun(461,52)+'<text class="lt" x="461" y="104">nur im Licht</text>'+nm(121,'Ethan')+nm(335,'Brom'),A:'',R:chain(580,130,2,{R:'X'})+plus(775)+hbr(815,130)+nm(646,'Bromethan')+nm(850,'Bromwasserstoff'),lab:''},
+ start:(DOT=true,{alt:'Ein Brom-Molekül wird durch Licht in zwei Brom-Radikale gespalten',L:br2(230,130,1),
+   A:sun(265,38)+fish('M265,123 Q262,74 241,102')+fish('M265,123 Q268,74 289,102'),R:brR(600,130,'e')+plus(670)+brR(740,130,'w'),lab:'Licht'}),
+ k1:(DOT=false,0)||{alt:'Brom-Radikal und Ethan reagieren zu Ethyl-Radikal und Bromwasserstoff',L:chain(110,130,2,{brk:1})+plus(258)+brR(320,130,'w'),
+   A:fish('M190,122 Q202,86 220,110'),R:chain(580,130,2,{R:'rad'})+plus(715)+hbr(770,130,1)},
+ k2:{alt:'Ethyl-Radikal und Brom-Molekül reagieren zu Bromethan und einem Brom-Radikal',L:chain(100,130,2,{R:'rad'})+plus(225)+br2(280,130,1),
+   A:fish('M315,123 Q312,74 292,102')+fish('M315,123 Q318,74 338,102'),R:chain(585,130,2,{R:'X',hx:1})+plus(780)+brR(835,130,'w')},
+ a1:{alt:'Zwei Brom-Radikale bilden ein Brom-Molekül',L:brR(220,130,'e')+plus(280)+brR(340,130,'w'),
+   A:fish('M245,123 Q255,93 272,110')+fish('M315,123 Q305,93 288,110'),R:br2(640,130,0,1)},
+ a2:{alt:'Ethyl-Radikal und Brom-Radikal bilden Bromethan',L:chain(110,130,2,{R:'rad'})+plus(240)+brR(300,130,'w'),
+   A:fish('M191,123 Q205,93 232,110')+fish('M275,123 Q262,93 248,110'),R:chain(580,130,2,{R:'X',hx:1})},
+ a3:{alt:'Zwei Ethyl-Radikale bilden Butan',L:chain(70,130,2,{R:'rad'})+plus(200)+chain(268,130,2,{L:'rad'}),
+   A:fish('M151,123 Q168,90 192,110')+fish('M249,123 Q232,90 208,110'),R:chain(585,130,4,{nbi:2})}
+};
+
+/* ---------- Formeln im Text ---------- */
+const fx=s=>s.replace(/([A-Za-z\)])(\d+)/g,'$1<sub>$2</sub>').replace(/\*/g,RD).replace(/-L>/g,'<span class="arw"><small>Licht</small>⟶</span>').replace(/->/g,'<span class="arw">⟶</span>');
+
+/* ---------- Fragen ---------- */
+const Q={
+ s1:{q:'Wie wird die Br–Br-Bindung durch das Licht gespalten?',o:['Gleichmäßig: Jedes Brom-Atom erhält eines der beiden Bindungselektronen.','Ungleichmäßig: Ein Brom-Atom erhält beide Bindungselektronen.','Gar nicht – das Licht erwärmt das Brom nur.'],ok:[0],ex:'Genau. Jedes Brom-Atom hat danach ein ungepaartes Elektron – es ist ein Radikal.'},
+ s2:{q:'Welche Teilchen entstehen im 1. Schritt der Kettenreaktion?',o:['Bromethan und ein Wasserstoff-Radikal','Ein Ethyl-Radikal und ein Bromwasserstoff-Molekül','Ethan und ein Brom-Molekül'],ok:[1],ex:'Richtig. Das Brom-Radikal holt sich ein H-Atom; am Kohlenstoff bleibt ein ungepaartes Elektron zurück.'},
+ s3:{q:'Warum ist der 2. Schritt so wichtig für die Kette?',o:['Weil dabei Licht entsteht.','Weil dabei Bromwasserstoff entsteht.','Weil dabei wieder ein Brom-Radikal entsteht.'],ok:[2],ex:'Genau. Das neue Brom-Radikal kann sofort das nächste Ethan-Molekül angreifen.'},
+ s5:{q:'Warum endet die Kette bei einer Abbruchreaktion?',o:['Weil das Licht ausgeschaltet wird.','Weil zwei Radikale eine Bindung bilden und kein neues Radikal entsteht.','Weil das Ethan aufgebraucht ist.'],ok:[1],ex:'Genau. Die ungepaarten Elektronen werden zu einem Bindungselektronenpaar – es gibt kein Radikal mehr, das weitermachen kann.'},
+ h1:{q:'Startreaktion: Was passiert mit dem Chlor-Molekül im Licht?',o:['Cl2 -> Cl<sup>+</sup> + Cl<sup>−</sup>','Cl2 -L> Cl* + *Cl','C6H14 -L> C6H13* + H*'],ok:[1],ex:'Richtig: Wie beim Brom wird das Halogen-Molekül gleichmäßig in zwei Radikale gespalten.'},
+ h2:{q:'Kettenreaktion, 1. Schritt: Cl* + C6H14 -> ?',o:['C6H13Cl + H*','C6H13* + HCl','C6H14Cl'],ok:[1],ex:'Richtig: Das Chlor-Radikal holt ein H-Atom; es entstehen ein Hexyl-Radikal und Chlorwasserstoff.'},
+ h3:{q:'Kettenreaktion, 2. Schritt: C6H13* + Cl2 -> ?',o:['C6H13Cl + Cl*','C6H13Cl2','C6H14 + Cl*'],ok:[0],ex:'Richtig: Es entsteht Chlorhexan – und ein neues Chlor-Radikal.'},
+ h4:{q:'Kettenreaktion: Welches Teilchen sorgt dafür, dass sich Schritt 1 und 2 immer wiederholen?',o:['HCl','C6H13Cl','Cl*'],ok:[2],ex:'Genau: Das Chlor-Radikal greift das nächste Hexan-Molekül an.'},
+ h5:{q:'Abbruchreaktionen: Welche Produkte können entstehen? (Mehrere richtig)',o:['Cl2','C6H13Cl','C12H26 (Dodecan)','HCl','C6H14'],ok:[0,1,2],multi:1,ex:'Richtig: Immer zwei Radikale verbinden sich – Cl* + *Cl, C6H13* + *Cl oder C6H13* + *C6H13.'}
+};
+const st={};
+function quiz(ids,cls=''){return ids.map(id=>{const q=Q[id];return `<div class="qz ${cls}" data-q="${id}"><p class="qq">${fx(q.q)}</p><div class="opts">${q.o.map((o,j)=>`<button class="op" data-act="op" data-q="${id}" data-j="${j}">${fx(o)}</button>`).join('')}</div>${q.multi?'<div style="margin-top:8px"><button class="btn" data-act="chk" data-q="'+id+'">Prüfen</button></div>':''}<p class="fb" aria-live="polite"></p></div>`}).join('')}
+
+/* ---------- Bausteine ---------- */
+const ws=(t,e,tip)=>`<div class="box ws"><h2 style="margin:0">Übertrage diese Reaktionsgleichung vollständig auf dein Arbeitsblatt.</h2>${tip?`<p style="margin:.6em 0 0">${tip}</p>`:''}</div>`;
+const legend=`<div class="legend"><span><i style="width:16px;height:3px;background:var(--ink)"></i>Strich = Elektronenpaar</span><span><i style="width:9px;height:9px;border-radius:50%;background:var(--re)"></i>Punkt = ungepaartes Elektron</span><span><i style="width:18px;height:3px;background:var(--ea)"></i>Halbpfeil = ein Elektron wandert</span></div>`;
+const ctrl=`<div class="ctrl"><div class="seg" role="group" aria-label="Ablauf"><button data-act="ph" data-p="0">1 · Ausgangsstoffe</button><button data-act="ph" data-p="1">2 · Elektronen bewegen sich</button><button data-act="ph" data-p="2">3 · Produkte</button></div><button class="btn" data-act="play">▶ Abspielen</button></div>`;
+const legendD=legend.replace('<i style="width:16px;height:3px;background:var(--ink)"></i>Strich = Elektronenpaar','<i style="width:5px;height:5px;border-radius:50%;background:var(--ink);box-shadow:8px 0 0 var(--ink);margin-right:14px"></i>Punktpaar = freies Elektronenpaar, Strich = Bindung');
+const stage=(k,x='')=>`<div class="stage">${x}<div id="fig" class="p0" data-k="${k}">${scene(SC[k])}</div>${ctrl}${k=='start'?legendD:legend}</div>`;
+const mini=k=>`<div class="mini p2">${scene(SC[k]).replace('viewBox="0 0 1000 260"','viewBox="0 64 1000 138"')}</div>`;
+const check=id=>`<div class="box"><h2>Kurz gecheckt</h2>${quiz([id])}</div>`;
+
+/* ---------- Stationen ---------- */
+const STEPS=[
+{id:'einstieg',nav:'Einstieg',kick:'Station 1 · Worum geht es?',title:'Ethan trifft Brom – im Licht',lead:'Braunes Brom und farbloses Ethan reagieren nur, wenn Licht dazukommt. Hier findest du heraus, was dabei Teilchen für Teilchen passiert.',
+ body:()=>`<div class="stage"><svg class="sc obs" id="obs" viewBox="0 0 1000 370" role="img" aria-label="Versuch: Im Dunkeln bleibt das Gemisch braun, im Licht entfärbt es sich und das Universalindikatorpapier wird rot">
+  <rect x="0" y="0" width="490" height="370" rx="18" fill="#1c1a26"/><rect x="510" y="0" width="490" height="370" rx="18" fill="#fff1b8"/>
+  <text x="30" y="46" class="pt" fill="#ece8f7">im Dunkeln</text><path d="M452,30 a18,18 0 1,0 14,30 a14,14 0 1,1 -14,-30z" fill="#ece8f7"/>
+  <text x="540" y="46" class="pt" fill="#3a2a00">im Licht</text>${sun(925,62).replace(/r="10"/,'r="17"').replace(/\*15/g,'*24').replace(/\*23/g,'*34')}
+  ${[[890,92,812,150],[870,74,800,128],[902,112,822,178]].map(l=>`<line x1="${l[0]}" y1="${l[1]}" x2="${l[2]}" y2="${l[3]}" stroke="#f2b20d" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 9"/>`).join('')}
+  ${vessel(245,'')}${vessel(755,'L')}
+  <text x="245" y="350" class="lb" fill="#ece8f7">keine Reaktion</text>
+  <g class="lbl"><text x="755" y="350" class="lb" fill="#3a2a00">Brom entfärbt sich</text>
+  <text x="728" y="72" class="lb" fill="#3a2a00" style="text-anchor:end"><tspan x="728">Universalindikator</tspan><tspan x="728" dy="23">wird rot</tspan></text></g></svg>
+  <div class="ctrl"><button class="btn ghost" data-act="replay">↻ Versuch nochmal ansehen</button></div>
+  <div id="fig" class="p2" style="margin-top:14px">${scene(SC.intro)}</div></div>
+ <div class="cols"><div class="txt"><h2>So arbeitest du</h2><ol><li>Schau dir in jeder Station zuerst nur die Ausgangsstoffe an. Überlege: Was könnte entstehen?</li><li>Tippe auf „Elektronen bewegen sich“ und verfolge die blauen Halbpfeile.</li><li>Lass dir die Produkte zeigen und prüfe deine Vermutung.</li><li>Übertrage den gestrichelten Kasten auf dein Arbeitsblatt.</li></ol></div></div>`},
+{id:'start',nav:'Startreaktion',kick:'Station 2 · Startreaktion',title:'Licht spaltet das Brom-Molekül',lead:'Ohne Radikale kein Start. Woher kommen die ersten Radikale?',
+ body:()=>`${stage('start')}<div class="cols"><div class="txt"><h2>Was passiert?</h2><ul><li>Licht liefert die nötige Energie (<b>Aktivierungsenergie</b>).</li><li>Die Bindung zwischen den beiden Brom-Atomen wird <b>gleichmäßig gespalten</b>: Die beiden Bindungselektronen „klappen“ je zu einem Brom-Atom um.</li><li>Es entstehen <b>zwei Brom-Radikale</b>. Jedes hat drei freie Elektronenpaare und ein ungepaartes Elektron.</li></ul>
+ <p><b>Warum gerade Brom?</b> Die Br–Br-Bindung ist viel schwächer als die C–H- und C–C-Bindungen im Ethan. Darum reicht die Energie des Lichts nur für sie.</p></div>
+ <div>${ws('Startreaktion',['Br–Br -L> Br* + *Br'],'')}${check('s1')}</div></div>`},
+{id:'kette-1',nav:'Kette 1',kick:'Station 3 · Kettenreaktion, 1. Schritt',title:'Das Brom-Radikal holt sich ein H-Atom',lead:'Ein Brom-Radikal stößt auf ein Ethan-Molekül. Überlege zuerst: Welche Bindung wird gespalten?',
+ body:()=>`${stage('k1')}<div class="cols"><div class="txt"><h2>Was passiert?</h2><ul><li>Die C–H-Bindung am Ethan wird gleichmäßig gespalten (rot gestrichelt).</li><li>Ein Elektron wandert mit dem H-Atom zum Brom. Zusammen mit dem ungepaarten Elektron des Brom-Radikals bildet es die neue <b>H–Br-Bindung</b>.</li><li>Das andere Elektron bleibt am Kohlenstoff-Atom: Es entsteht ein <b>Ethyl-Radikal</b> (CH<sub>3</sub>–CH<sub>2</sub>${RD}).</li></ul>
+ <p>Das Radikal ist also nicht verschwunden – es ist „weitergewandert“: Aus dem Brom-Radikal wurde ein Ethyl-Radikal.</p></div>
+ <div>${ws('Kettenreaktion – 1. Schritt',['CH3–CH3 + *Br -> CH3–CH2* + H–Br'],'Markiere das ungepaarte Elektron am C-Atom deutlich.')}${check('s2')}</div></div>`},
+{id:'kette-2',nav:'Kette 2',kick:'Station 4 · Kettenreaktion, 2. Schritt',title:'Das Ethyl-Radikal spaltet ein Brom-Molekül',lead:'Das Ethyl-Radikal ist sehr reaktiv. Es trifft auf ein weiteres Brom-Molekül.',
+ body:()=>`${stage('k2')}<div class="cols"><div class="txt"><h2>Was passiert?</h2><ul><li>Die Br–Br-Bindung wird gleichmäßig gespalten.</li><li>Ein Elektron bildet mit dem ungepaarten Elektron des Ethyl-Radikals die neue <b>C–Br-Bindung</b>: Es entsteht <b>Bromethan</b>.</li><li>Das andere Elektron bleibt beim zweiten Brom-Atom: Es entsteht ein <b>neues Brom-Radikal</b>.</li></ul>
+ <p>Übrig bleibt ein Brom-Radikal, das erneut mit einem Ethan-Molekül reagieren kann (zurück zum 1. Schritt). So entsteht eine <b>Kettenreaktion</b>: Ihre beiden Schritte wiederholen sich ständig. Ein einziges Radikal aus der Startreaktion kann so sehr viele Moleküle umsetzen.</p></div>
+ <div>${ws('Kettenreaktion – 2. Schritt',['CH3–CH2* + Br–Br -> CH3–CH2–Br + *Br'],'')}${check('s3')}</div></div>`},
+{id:'abbruch',nav:'Abbruch',kick:'Station 5 · Abbruchreaktionen',title:'Zwei Radikale treffen sich',lead:'Im Gefäß gibt es viele Radikale gleichzeitig. Was passiert, wenn zwei von ihnen zusammenstoßen? Es gibt drei Möglichkeiten.',
+ body:()=>`${stage('a3','<div class="chips" role="group" aria-label="Abbruchreaktion wählen"><button data-act="ab" data-k="a3" aria-pressed="true">a) Ethyl· + ·Ethyl</button><button data-act="ab" data-k="a2" aria-pressed="false">b) Ethyl· + ·Br</button><button data-act="ab" data-k="a1" aria-pressed="false">c) Br· + ·Br</button></div>')}
+ <div class="cols"><div class="txt"><h2>Was passiert?</h2><ul><li>Die ungepaarten Elektronen der beiden Radikale bilden zusammen ein <b>Bindungselektronenpaar</b>.</li><li>Es entsteht kein neues Radikal – die Kette <b>bricht ab</b>.</li></ul>
+ <div class="box merk"><b>Merke:</b> Die Reaktion von Halogen-Molekülen mit Alkan-Molekülen ist eine <b>Radikalkettenreaktion</b>. Sie besteht aus Startreaktion, Kettenreaktion und Abbruchreaktionen.</div></div>
+ <div>${ws('Abbruchreaktionen',['Br* + *Br -> Br–Br','CH3–CH2* + *Br -> CH3–CH2–Br','CH3–CH2* + *CH2–CH3 -> CH3–CH2–CH2–CH3'],'')}${check('s5')}</div></div>`},
+{id:'ueberblick',nav:'Überblick',kick:'Station 6 · Zusammenfassung',title:'Der ganze Mechanismus auf einen Blick',lead:'Vergleiche mit deinem Arbeitsblatt: Hast du alle Schritte?',
+ body:()=>`<div class="stage ov"><h3>Startreaktion</h3>${mini('start')}
+ <h3>Kettenreaktion</h3><p class="sl">1. Schritt</p>${mini('k1')}<p class="sl">2. Schritt</p>${mini('k2')}<p class="sl">Beide Schritte wiederholen sich ständig.</p>
+ <h3>Abbruchreaktionen</h3><p class="sl">a)</p>${mini('a3')}<p class="sl">b)</p>${mini('a2')}<p class="sl">c)</p>${mini('a1')}</div>
+ <div class="cols"><div class="txt"><h2>Gesamtreaktion</h2><div class="eq" style="font-size:24px;background:var(--card);border-radius:12px;padding:24px 16px 14px;margin-top:8px;white-space:nowrap;overflow-x:auto">${fx('C2H6 + Br2 -L> C2H5Br + HBr')}</div><p style="margin:.6em 0 0;color:var(--mut)">(Die beim Abbruch entstehenden Alkane werden nicht erwähnt)</p></div>
+ <div><div class="box"><h2>Energie</h2><ul class="txt" style="padding-left:1.2em;margin:0"><li>Alkane sind reaktionsträge. Licht liefert die <b>Aktivierungsenergie</b> für die Startreaktion.</li><li>Einmal gestartet, läuft die Kette von selbst weiter: Die Reaktion ist <b>stark exotherm</b>.</li></ul></div></div></div>`},
+{id:'uebung',nav:'Übung: Hexan',kick:'Station 7 · Jetzt du!',title:'Hexan reagiert mit Chlor',lead:'Hexan (C₆H₁₄) und gelbgrünes Chlor (Cl₂) reagieren im Licht genauso wie Ethan und Brom. Erarbeite den Mechanismus – Aufgabe für Aufgabe.',
+ body:()=>`<div class="stage" style="padding:18px"><p style="margin:0 0 6px"><b>Tipp:</b> Du kannst Hexan abgekürzt als R–H schreiben (R = C<sub>6</sub>H<sub>13</sub>), so wie im Schulbuch. Gezählt wird nur der erste Versuch.</p><p class="score" id="score" aria-live="polite"></p>
+ <div style="counter-reset:t">${quiz(['h1','h2','h3','h4','h5'],'task')}</div></div>
+ <div class="cols"><div class="box ws"><h2>Für dein Arbeitsblatt</h2><ol style="padding-left:1.2em;margin:0"><li>Formuliere die Startreaktion in Strukturformeln mit allen Elektronen.</li><li>Formuliere die Kettenreaktion (Schritt 1 und 2) und erkläre, warum sie sich wiederholt.</li><li>Notiere drei mögliche Abbruchreaktionen.</li></ol>
+ <details><summary>Lösung anzeigen (erst nach deinem Versuch!)</summary>${['Cl–Cl -L> Cl* + *Cl','C6H14 + *Cl -> C6H13* + H–Cl','C6H13* + Cl–Cl -> C6H13Cl + *Cl','Cl* + *Cl -> Cl2','C6H13* + *Cl -> C6H13Cl','C6H13* + *C6H13 -> C12H26'].map(e=>`<div class="eq">${fx(e)}</div>`).join('')}</details></div>
+ <div class="box merk"><h2>Denk weiter</h2><p style="margin:0">Warum braucht man für diese Reaktion nur einen kurzen Lichtblitz – aber trotzdem Licht? Erkläre mit den Begriffen <b>Aktivierungsenergie</b>, <b>Radikal</b> und <b>exotherm</b>.</p></div></div>`}
+];
+
+/* ---------- Navigation ---------- */
+const nav=document.getElementById('nav'),hero=document.getElementById('hero'),main=document.getElementById('main');
+const visited=new Set();let cur=0,timers=[];
+const clearT=()=>{timers.forEach(clearTimeout);timers=[]};
+function go(i,push=true){
+  cur=Math.max(0,Math.min(STEPS.length-1,i));clearT();cancelAnimationFrame(raf);busy=false;visited.add(cur);
+  const s=STEPS[cur];
+  document.body.classList.toggle('cl',s.id=='uebung');
+  nav.innerHTML=STEPS.map((t,j)=>`<button data-i="${j}" aria-current="${j==cur}" class="${visited.has(j)&&j!=cur?'done':''}">${t.nav}</button>`).join('');
+  hero.innerHTML=`<div class="kick">${s.kick}</div><h1>${s.title}</h1><p>${s.lead}</p>`;
+  main.innerHTML=s.body();
+  document.getElementById('pos').textContent=`Station ${cur+1} von ${STEPS.length}`;
+  document.getElementById('prev').disabled=cur==0;document.getElementById('prev').style.visibility=cur==0?'hidden':'visible';
+  document.getElementById('next').textContent=cur==STEPS.length-1?'Von vorn':'Weiter ›';
+  setPh(0);restoreQuiz();score();
+  nav.querySelector('[aria-current=true]').scrollIntoView({inline:'center',block:'nearest'});
+  if(s.id=='einstieg')timers.push(setTimeout(()=>document.getElementById('obs')?.classList.add('on'),700));
+  if(push&&location.hash!=='#'+s.id)history.replaceState(null,'','#'+s.id);
+  try{localStorage.setItem('rs-step',s.id)}catch(e){}
+  window.scrollTo(0,0)}
+function setPh(p){const f=document.getElementById('fig');if(!f||!f.dataset.k)return;f.className='p'+p;
+  main.querySelectorAll('[data-act=ph]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.p==p))}
+
+let raf=0,busy=false;
+/* ---------- Quiz ---------- */
+function mark(id){const box=main.querySelector(`.qz[data-q="${id}"]`);if(!box)return;const s=st[id],q=Q[id];if(!s)return;
+  const fb=box.querySelector('.fb');
+  box.querySelectorAll('.op').forEach(b=>{const j=+b.dataset.j;b.classList.remove('ok','no','sel');
+    if(q.multi){if(s.sel.includes(j))b.classList.add(s.done?(q.ok.includes(j)?'ok':'no'):'sel')}
+    else if(s.last===j)b.classList.add(q.ok.includes(j)?'ok':'no')});
+  if(s.res===true){fb.className='fb ok';fb.innerHTML='✓ '+fx(q.ex)}
+  else if(s.res===false){fb.className='fb no';fb.innerHTML='Noch nicht ganz – überlege noch einmal und versuche es erneut.'}
+  else fb.textContent=''}
+function restoreQuiz(){Object.keys(st).forEach(mark)}
+function score(){const e=document.getElementById('score');if(!e)return;const ids=['h1','h2','h3','h4','h5'];
+  const done=ids.filter(i=>st[i]&&st[i].res===true).length,first=ids.filter(i=>st[i]&&st[i].first===true).length;
+  e.textContent=done==ids.length?`Geschafft! ${first} von ${ids.length} Aufgaben beim ersten Versuch richtig.`:`${done} von ${ids.length} Aufgaben gelöst`}
+const same=(a,b)=>a.length==b.length&&a.every(x=>b.includes(x));
+
+/* ---------- Ereignisse ---------- */
+nav.addEventListener('click',e=>{const b=e.target.closest('button');if(b)go(+b.dataset.i)});
+document.getElementById('prev').onclick=()=>go(cur-1);
+document.getElementById('next').onclick=()=>go(cur==STEPS.length-1?0:cur+1);
+document.addEventListener('keydown',e=>{if(e.target.closest('button,input'))return;if(e.key=='ArrowRight')go(cur+1);if(e.key=='ArrowLeft')go(cur-1)});
+main.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+  if(a=='ph'){clearT();setPh(+b.dataset.p)}
+  if(a=='replay'){clearT();const o=document.getElementById('obs');o.classList.remove('on');timers.push(setTimeout(()=>o.classList.add('on'),500))}
+  if(a=='play'){clearT();setPh(0);timers.push(setTimeout(()=>setPh(1),700),setTimeout(()=>setPh(2),2600))}
+  if(a=='ab'){clearT();main.querySelectorAll('[data-act=ab]').forEach(x=>x.setAttribute('aria-pressed',x==b));
+    const f=document.getElementById('fig');f.dataset.k=b.dataset.k;f.innerHTML=scene(SC[b.dataset.k]);setPh(0)}
+  if(a=='op'){const id=b.dataset.q,q=Q[id],j=+b.dataset.j;const s=st[id]||(st[id]={sel:[]});
+    if(q.multi){if(s.done&&s.res)return;s.done=false;s.res=null;s.sel=s.sel.includes(j)?s.sel.filter(x=>x!=j):[...s.sel,j]}
+    else{if(s.res===true)return;s.last=j;s.res=q.ok.includes(j);if(s.first===undefined)s.first=s.res}
+    mark(id);score()}
+  if(a=='chk'){const id=b.dataset.q,q=Q[id],s=st[id]||(st[id]={sel:[]});if(!s.sel.length)return;
+    s.done=true;s.res=same(s.sel,q.ok);if(s.first===undefined)s.first=s.res;mark(id);score()}});
+addEventListener('hashchange',()=>{const i=STEPS.findIndex(s=>'#'+s.id==location.hash);if(i>=0&&i!=cur)go(i,false)});
+let start=STEPS.findIndex(s=>'#'+s.id==location.hash);
+if(start<0){try{start=STEPS.findIndex(s=>s.id==localStorage.getItem('rs-step'))}catch(e){}}
+go(Math.max(0,start))
+}
+</script>
+</body>
+</html>
